@@ -1,0 +1,5 @@
+sample  file    condition
+SRR25411155     SRR25411155.tsv       WT
+SRR25411167     SRR25411167.tsv WT
+SRR25411161     SRR25411161.tsv mutant
+SRR25411166     SRR25411166.tsv mutant
