@@ -6,6 +6,7 @@ The training covers basic Linux commands, Conda environments, HPC usage, and RNA
 
 ## Basic Linux commands
 
+```bash
 ls                                  # list directory contents
 ls -ltrh                            # long format, sorted by time, reverse order, human-readable sizes
 
@@ -13,7 +14,7 @@ mkdir dir_name                      # create one directory
 mkdir dir1_name dir2_name           # create multiple directories
 mkdir -p project/results            # create nested directories
 
-pwd                                 # showing your current path
+pwd                                 # showing your current path 
 
 cd                                  # change directory
 cd dir_name                         # go into a directory
@@ -44,62 +45,65 @@ cat file.txt                        # print entire file
 less file.txt                       # scrollable view (best for large files)
 head file.txt                       # first 10 lines
 tail file.txt                       # last 10 lines
-
+```
 
 ## File formats
     
-    FASTA:
+**FASTA**:
 
-        The first line starts with ">" followed by the description or identifier of the sequence.
-        The following line is the actual sequence itself in standard one-letter code.
+The first line starts with ">" followed by the description or identifier of the sequence.
+The following line is the actual sequence itself in standard one-letter code.
 
-        e.g.
-        >Sequence_id
-        NUCLEOTIDESEQUENCE
+*Example*:
 
-        >chr1
-        AAATATTATGCGCGAGTTTCAGAAA
+    >Sequence_id
+    NUCLEOTIDESEQUENCE
 
-
-    FASTQ:
-
-        Represents nucleotide sequneces, but also contains the correspondig quality of each nucleotide. Four lines per sequnce:
-            . Line 1 begins with '@' followed by sequence identifier and an optional description.
-            . Line 2 is the raw sequence of nucleotides.
-            . Line 3 begins with a '+' and is a free text field.
-            . Line 4 encodes the quality values for the sequence in Line 2. Quality (phred score) = probability that the corresponding basecall is incorrect.
-        
-        e.g.
-        @SEQ_ID
-        GAGAGTTTGCGAGCTTTGCTAGCT
-        +
-        !''*-(((***+))%%%++)-%%%
-
-    SAM:
-
-        Text-based format for storing sequences aligned to a reference sequence.
-        Consists of a header and an alignment section.
-        In brief, it consist of a header section and reads (with other information) in tab delimited format.
+    >chr1
+    AAATATTATGCGCGAGTTTCAGAAA
 
 
-    BAM:
+**FASTQ**:
 
-        Binary representation of a SAM file.
-        Compressed so no human-readable.
+Represents nucleotide sequneces, but also contains the correspondig quality of each nucleotide. Four lines per sequence:
+- Line 1 begins with '@' followed by sequence identifier and an optional description.
+- Line 2 is the raw sequence of nucleotides.
+- Line 3 begins with a '+' and is a free text field.
+- Line 4 encodes the quality values for the sequence in Line 2. Quality (phred score) = probability that the corresponding basecall is incorrect.
+
+*Example*:
+
+    @SEQ_ID
+    GAGAGTTTGCGAGCTTTGCTAGCT
+    +
+    !''*-(((***+))%%%++)-%%%
+
+**SAM**:
+
+Text-based format for storing sequences aligned to a reference sequence. \
+Consists of a header and an alignment section. \
+In brief, it consist of a header section and reads (with other information) in tab delimited format.
+
+
+**BAM**:
+
+Binary representation of a SAM file. \
+Compressed so no human-readable.
     
-    GFF/GFF3/GTF:
+**GFF/GFF3/GTF**:
 
-        General feature format (gff) is used for describing genes and other features od DNA, RNA and protien sequences.
-        Standard annotation of genomes.
+General feature format (gff) is used for describing genes and other features od DNA, RNA and protien sequences.
+Standard annotation of genomes.
 
-        e.g.
-        ##description: evidence-based annotation of the human genome (GRCh38), version 25 (Ensembl 85)
-        ##provider: GENCODE
-        ##contact: gencode-help@sanger.ac.uk
-        ##format: gtf
-        ##date: 2016-07-15
-        chr1    HAVANA  gene    11869   14409   .   +   .   gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";
-        chr1    HAVANA  transcript  11869   14409   .   +   .   gene_id "ENSG00000223972.5"; transcript_id "ENST00000456328.2"; gene_type "transcribed_unprocessed_pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; transcript_type "processed_transcript"; transcript_status "KNOWN"; transcript_name "DDX11L1-002"; level 2; transcript_support_level "1"; tag "basic"; havana_gene "OTTHUMG00000000961.2"; havana_transcript "OTTHUMT00000362751.1";
+*Example*:
+    
+    ##description: evidence-based annotation of the human genome (GRCh38), version 25 (Ensembl 85)
+    ##provider: GENCODE
+    ##contact: gencode-help@sanger.ac.uk
+    ##format: gtf
+    ##date: 2016-07-15
+    chr1    HAVANA  gene    11869   14409   .   +   .   gene_id "ENSG00000223972.5"; gene_type "transcribed_unprocessed_pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; level 2; havana_gene "OTTHUMG00000000961.2";
+    chr1    HAVANA  transcript  11869   14409   .   +   .   gene_id "ENSG00000223972.5"; transcript_id "ENST00000456328.2"; gene_type "transcribed_unprocessed_pseudogene"; gene_status "KNOWN"; gene_name "DDX11L1"; transcript_type "processed_transcript"; transcript_status "KNOWN"; transcript_name "DDX11L1-002"; level 2; transcript_support_level "1"; tag "basic"; havana_gene "OTTHUMG00000000961.2"; havana_transcript "OTTHUMT00000362751.1";
 
 ## Data repositories
 
@@ -126,19 +130,23 @@ For login to the CCC open a Linux terminal use SSH conexion.
         ssh -X user@login3.ccc.uam.es
 
 Software on the CCC is already installed and managed through the module system.
+
 You can use the "module" command.
 
+```bash
 module avail                      # lists all software available
 module load software_name         # load a specific software into your environment
 module list                       # displays all software currently loaded
 module unload software_name       # unloads a specific sofware module
 module purge                      # unloads all currently loaded software
-
+```
 At the CCC you have access to the following directories:
 
+```bash
 /home/user                        # your home directory 
 /scratch/user                     # temporary high-performance storage
 /home/projects/your_project       # shared project directory
+```
 
 ## Visual Studio Code - SSH extension
 
@@ -146,15 +154,18 @@ Powerful code editor that supports many programming languages such as Bash, Pyth
 
 To work directly on the CCC from your local machine, you can use the remote SSH extension.
 
-- VSCode configuration for command line only (no graphics)
+**VSCode configuration for command line only (no graphics)**
+
+*Configuration parameters*:
 
     Host "alias_host"
         HostName login1.ccc.uam.es
         User user_name
 
-- VSCode configuration with graphic support (X11 Forwarding)
+**VSCode configuration with graphic support (X11 Forwarding)** \
+Note: In Windows, this configuration is not enough to see graphics.
 
-Note: In Windows, this configuration is not enough to see graphics. 
+*Configuration parameters*:
 
     Host "alias_host"
         HostName login3.ccc.uam.es
@@ -207,7 +218,8 @@ Before using Conda, you must initialize it:
     source ~/.bashrc
 
 Now you can work with Conda. These are some usefull commands:
-    
+
+```bash
 conda env list                          # shows available environments
 conda create --name new_env             # creates an environment
 conda env create -f environment.yml     # creates an environment using a config file
@@ -216,7 +228,7 @@ conda install software_name             # install package in the active environm
 conda list                              # displays all packages installed
 conda deactivate                        # returns to base environment
 conda export > environment.yml          # export your current environment 
-
+```
 
 
 
@@ -269,8 +281,10 @@ conda export > environment.yml          # export your current environment
 
 ## 2. Sequencing data download
 
-Go to ENA browser (https://www.ebi.ac.uk/ena/browser/home)
-Enter the study name (PRJNA998264) and get the path to the reads for the samples of interest (SRR25411155, SRR25411161, SRR25411166, SRR25411167).
+Go to ENA browser (https://www.ebi.ac.uk/ena/browser/home).
+
+Enter the study name (PRJNA998264) and get the path to the reads for the samples of interest (SRR25411155, SRR25411161, SRR25411166, SRR25411167). 
+
 Select those samples and click "Get download script"
 
 ```
@@ -319,6 +333,7 @@ Select those samples and click "Get download script"
 
 ## 3. Reference genome preparation
 Go to ENSEMBL (https://www.ensembl.org/index.html)
+
 Look for the organism of interest and get the link from "Download FASTA" and "Download GTF".
 
 ```
