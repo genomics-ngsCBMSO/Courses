@@ -4,7 +4,7 @@
 
 **Servicio de Análisis Biocomputacional (SABio); CBM** \
 **Edition**: April, 2026 \
-**Last update**: 30/03/2026
+**Last update**: 08/04/2026
 
 ## Introduction to ATAC-seq
 
@@ -16,9 +16,9 @@ High-throughput sequencing then yields reads that indicate these regions of incr
 
 ## Project Background
 
-We will analyze published ATAC-seq data generated from single-myofibers in *Dmd* KO and wild-type mice. *Dmd* KO mice do not express dystrophin  and are used as Duchenne muscular dystrophy models. 
+We will analyze published ATAC-seq data generated from single-myofibers in *Dmd* KO and wild-type mice. *Dmd* KO mice do not express dystrophin and are used as Duchenne muscular dystrophy models.
 
-In this practice, first, formal analysis (reads QC, trimming, alignment, ...) of ATAC-seq data will be done for all samples. Then, experimental groups will be compared to find differences in their chromatin accesibility profiles and genes and routes potentially affected by these differences in accesibility. 
+In this practice, first, we will perform formal analysis (reads QC, trimming, alignment, ...) of ATAC-seq data. Then, experimental conditions will be compared to find differences in their chromatin accesibility profiles, binding motifs and genes and pathways potentially affected by these differences in accesibility. 
 
 ## Basic Linux Commands
 
@@ -67,7 +67,7 @@ tail file.txt                       # last 10 lines
 
 ## 0. Environment setup
 
-Load the conda environment "Dia3". This environment has installed the software we will need for the practice  today. For checking which software is available you can run `conda list`.
+Load the conda environment "Dia3". This environment has installed a set of tools that we will use at different steps in the practice. For checking which software is available in this environment you can run `conda list`.
 
 
 ```bash
@@ -105,7 +105,7 @@ The samples we will use for the practice are:
 
 ### 1.1. Sequencing reads (FASTQ files)
 
-To save time, FASTQ files for these samples are already downloaded in your computer. We did a sumsampling taking 1M random reads for each file so the process speeds up.  We will create a symbolic link.
+To save time, FASTQ files for these samples were downloaded. A subsampling of 1M and 10M reads per samples was perfomed to speed up the computing time in this practice. We will start working with 1M-read FASTQ files.
 
 ```bash
 # Subsample reads to 1 million
@@ -125,7 +125,7 @@ ln -s /home/curso/Software/dia3/reads/*.fastq.gz .
 ```
 ### 1.2. Reference genome
 
-We also need the nucleotide sequence (FASTA) and annotation (GTF or GFF3) of the reference genome. Optinally, we can copy also de Bowtie2 genome index.
+We also need the nucleotide sequence (FASTA) and annotation (GTF) of the reference genome. A Bowtie2 genome index is also needed, we can either take it from the reference folder or build it with `bowtie2-build` function.
 
 ```bash
 # Create a folder to store the reference genome sequence
@@ -159,7 +159,7 @@ cd /home/curso/dia3/raw_fastqc
 
 ### 2.2. Reads trimming and post-trimming QC
 
-Perform read trimming with `Trim_Galore`to remove adapter sequences and low quality reads.
+Perform read trimming with `Trim_Galore` to remove adapter sequences and low quality reads.
 
 ```bash
 # Create a folder to store trimmed reads and FastQC reports
@@ -187,9 +187,9 @@ cd /home/curso/dia3/trimmed_fastqc
 
 Once we have trimmed the reads, we can proceed mapping (or aligning) the reads to the reference genome.
 
-There are many tools available for performing this step (BWA, Bowtie2, HISAT, STAR, ...), today we will use `bowtie2`.
+There are many tools available for performing this step (BWA, Bowtie2, HISAT, STAR, ...), for the practice we will use `Bowtie2`.
 
-For the alignment we will need the sequence of the reference genome (FASTA) and an index that speeds the computing time. The genome index can be built with Bowtie2, however, as indexing may take long, we have already run that step.
+For the alignment we will need the sequence of the reference genome (FASTA) and the Bowtie2 index. As indexing the reference genome may take long, we have already run that step.
 
 ```bash
 mkdir /home/curso/dia3/alignment
@@ -221,9 +221,9 @@ done
 
 ### 4.1. Duplicates detection and removal
 
-Duplicate reads (reads with identical start and end position on the genome) should be marked using tools such as Picard MarkDuplicates. 
+Duplicate reads (reads with identical start and end position on the genome) should be marked using tools such as `Picard MarkDuplicates`. 
 
-Marking duplicates involves indentifying reads that are identical after alignment.
+Duplicates may be:
 
 - **PCR duplicates**: technical artifacts introduced during the amplificacion process necessary for sequencing library preparation.
 - **Optical duplicates**
@@ -253,7 +253,7 @@ done
 
 ### 4.2. Remove reads overlapping blacklisted regions
 
-**Blacklisted regions**: regions in the genome that produce no reliable signals or artifacts in sequencing experiments. 
+**Blacklisted regions**: regions in the genome that produce no reliable signals or artifacts in sequencing experiments.
 
 They are filtered out to avoid missinterpreting data on these regions.
 
@@ -289,7 +289,7 @@ done
 
 ## 5. ATAC-seq libraries QC
 
-For this step we will ue tools from `picard`and `deeptools`
+For this step we will use tools from `Picard` and `deeptools`
 
 ### 5.1. Fragment size distribution
 
@@ -372,7 +372,7 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 #     --perGroup
 ```
 
-### 5.5. Correlacion perfil de enriquecimiento entre picos
+### 5.5. Peaks correlation profile
 
 ```bash
 # # Summarize enrichment from multiple BigWig files in an unique matrix
@@ -404,8 +404,9 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 
 ## 6. Peaks detection and consolidation
 
-To find regions corresponding to potential open chromatin, we want to identify ATAC-seq "peaks" where reads have piled up to a greater extent than teh background read coverage.
-For this second part of the practice, we will use aligment generated using a subsample of 10M reads.
+To find regions corresponding to potential open chromatin, we want to identify ATAC-seq "peaks" where reads have piled up to a greater extent than the background read coverage.
+
+For this second part of the practice, we will use aligments generated using a subsample of 10M reads, so peaks can be visualized clearly.
 
 These aligments have been filtered for duplicates and blacklisted regions.
 
@@ -425,23 +426,18 @@ ln -s /home/curso/Software/dia3/alignment_10M_flt/* .
 
 ### 6.1. Peak calling and QC
 
-While `MACS2` and `MACS3` are tools used for peak calling, MACS3 has more ATAC-seq oriented features than its predecessor.
+While `MACS2` and `MACS3` are tools used for peak calling, MACS3 has more ATAC-seq oriented features than its predecessor, so we will use MACS3 for the practice.
 
-NAME_peaks.narrowPeak is BED6+4 format file which contains the peak locations together with peak summit, p-value, and q-value. If you plan to load it to the UCSC genome browser, please make sure that you turn on --trackline option. Definition of some specific columns are:
+MACS3 generates a "*SAMPLE_peaks.narrowPeak*" for each sample. This file is a BED6+4 format file which contains the peak locations together with peak summit, p-value, and q-value. Definition of some specific columns are:
 
-    5th: integer score for display. It’s calculated as int(-10*log10pvalue) or int(-10*log10qvalue) depending on whether -p (pvalue) or -q (qvalue) is used as score cutoff. Please note that currently this value might be out of the [0-1000] range defined in UCSC ENCODE narrowPeak format. You can let the value saturated at 1000 (i.e. p/q-value = 10^-100) by using the following 1-liner awk: awk -v OFS="\t" '{$5=$5>1000?1000:$5} {print}' NAME_peaks.narrowPeak
-
-    7th: fold-change at peak summit
-
-    8th: -log10pvalue at peak summit
-
-    9th: -log10qvalue at peak summit
-
-    10th: relative summit position to peak start
-
-Remove the beginning track line if you want to analyze it by other tools.
+- 5th: integer score for display. It’s calculated as int(-10*log10pvalue) or int(-10*log10qvalue) depending on whether -p (pvalue) or -q (qvalue) is used as score cutoff.
+- 7th: fold-change at peak summit
+- 8th: -log10pvalue at peak summit
+- 9th: -log10qvalue at peak summit
+- 10th: relative summit position to peak start
 
 ```bash
+# Load conda environment with MACS3
 conda deactivate
 conda activate Dia3-macs3
 
@@ -449,121 +445,83 @@ conda activate Dia3-macs3
 mkdir /home/curso/dia3/peak_calling_10M
 cd /home/curso/dia3/peak_calling_10M
 
-# for sample in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 
-# do
-#     macs3 callpeak -f BAMPE --call-summits -t /home/curso/dia3/alignment_10M_flt/${sample}_10M_flt.bam -g mm -n ${sample}.macs3 -B -q 0.05
-# done
-
+# Call peaks for each sample
 for sample in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 
 do
     macs3 callpeak -f BAMPE -t /home/curso/dia3/alignment_10M_flt/${sample}_10M_flt.bam -g mm -n ${sample}.macs3 -B -q 0.05
 done
 ```
+Calculate the proportion of reads in peaks for each sample.
 
 ```bash
-
-
-# Ejecuta MACS2 para hacer el peak calling
-# for file in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 
-# do
-# 	macs2 callpeak --keep-dup all --nomodel --gsize "mm" -f BAMPE --nolambda --name ${file}_peak --treatment ../alignment_10M_flt/${file}_10M_flt.bam -q 0.05 -B
-# done
-
-# Calcula el FRiP para cada muestra
-# Copia los alineamientos filtrados en la misma carpeta donde están los archivos BED con coordenadas de los picos
-#ln -s /home/curso/Software/dia3/alignment_10M/*_sorted_dedup_filtered.bam .
+# Load general conda environment
 conda deactivate
 conda activate Dia3
 
-# Ejecuta el programa que calcula FRiP
+# Calculate FRiP for each sample
 for sample in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194
 do
-    /home/curso/Software/dia3/frip.sh -s ${sample} -b /home/curso/dia3/alignment_10M_flt/${sample}_10M_flt.bam -p /home/curso/dia3/peak_calling_10M_macs3/${sample}.macs3_peaks.narrowPeak
+    /home/curso/Software/dia3/frip.sh -s ${sample} -b /home/curso/dia3/alignment_10M_flt/${sample}_10M_flt.bam -p /home/curso/dia3/peak_calling_10M/${sample}.macs3_peaks.narrowPeak
 done
-#/home/curso/Software/dia3/macs2_10M/frip.sh
+
 ```
 
 ### 6.2. Consesus peak consolidation between replicates
 
-MSCP is a bioinformatics tool designed to identify consensus peaks across nultiple replicates or experimetns.
+`MSCP` is a bioinformatics tool designed to identify consensus peaks across nultiple replicates or experiments.
 It merges overlapping peaks from replicates into a single consensus peak, reducing false positives.
 
-input are BED files
-chrom	start	end		name	value
-chr1	1000	2000	peak_1	11
-chr1	3000	4000	peak_2	22
-chr1	5000	6000	peak_3	33
+Input are BED files with the following fields:
+
+| chrom	| start | end | name | value |
+| ---   | ---   | --- | --- | --- |
+| chr1 | 1000 | 2000 | peak_1 | 11 |
+| chr1 | 3000 | 4000 | peak_2 | 22 |
+| chr1 | 5000 | 6000 | peak_3 | 33 |
 
 If your files are not in this format, you may configure MSPC's parser according to your files.
 
-mscp expect a BED file with multiple conlum. In order to crrectly parse different formats of BED files (standard or non-standard),
-without requiring the users to convert them to a common formt, MSPC alowa user to configure its parser by specifying tje number of olumns that contain required information.
-`mspc_parser_config.json`is the filenae of the file contanin parser cnfiguration.
+In order to correctly parse different formats of BED files (standard or non-standard),
+without requiring the users to convert them to a common formt, MSPC allows users to configure its parser by specifying the number of columns that contain required information. `mspc_parser_config.json` is the filename of the file contaning parser configuration.
 
-By default, MSPC expects p-values in a BED file to represented in -log10(p-value) format.
+By default, MSPC expects p-values in a BED file to be represented in -log10(p-value) format.
 
-Note that column numbers start by 0
-More info <https://genometric.github.io/MSPC/docs/cli/parser/>
+More info on parse configuration: <https://genometric.github.io/MSPC/docs/cli/parser/>
 
-More info on command parameters <https://genometric.github.io/MSPC/docs/cli/args>
+More info on MSCP command arguments: <https://genometric.github.io/MSPC/docs/cli/args>
 
 ```bash
-# Crea directorios en los que almacenar por separado los picos en las muestras WT y MDX
-#mkdir -p /home/curso/tmp_Dia3/consensus_peak/WT /home/curso/tmp_Dia3/consensus_peak/MDX
-
-# Calcula un archivo BED de picos consenso para las muestras WT
-#cd /home/curso/tmp_Dia3/consensus_peak/WT
-
-# for file in SRR15343189 SRR15343190 SRR15343191
-# do
-# 	ln -s /home/curso/tmp_Dia3/peak_calling_10M/${file}_peak_refinedFilt_peaks.narrowPeak .
-# done
-
-cd /home/curso/dia3/peak_calling_10M_macs3
+# Make sure you are located in the peak_calling folder
+cd /home/curso/dia3/peak_calling_10M
 
 # Run mscp on WT samples
-/home/curso/Software/dia3/consensus/mspc/mspc -i SRR15343189.macs3_peaks.narrowPeak -i SRR15343190.macs3_peaks.narrowPeak -i SRR15343191.macs3_peaks.narrowPeak \
+/home/curso/Software/dia3/mspc/mspc -i SRR15343189.macs3_peaks.narrowPeak -i SRR15343190.macs3_peaks.narrowPeak -i SRR15343191.macs3_peaks.narrowPeak \
     -r bio -s 0,01 -w 0,05 -a 0,05 -c 2 \
     -p /home/curso/Software/dia3/mspc_parser_config.json \
     -o /home/curso/dia3/consensus_peak_MDX
 
 # Run mscp on MDX samples
-/home/curso/Software/dia3/consensus/mspc/mspc -i SRR15343192.macs3_peaks.narrowPeak -i SRR15343193.macs3_peaks.narrowPeak -i SRR15343194.macs3_peaks.narrowPeak \
+/home/curso/Software/dia3/mspc/mspc -i SRR15343192.macs3_peaks.narrowPeak -i SRR15343193.macs3_peaks.narrowPeak -i SRR15343194.macs3_peaks.narrowPeak \
     -r bio -s 0,01 -w 0,05 -a 0,05 -c 2 \
     -p /home/curso/Software/dia3/mspc_parser_config.json \
     -o /home/curso/dia3/consensus_peak_WT
 
 
-# # Run mscp on 
-# # Calcula un archivo BED de picos consenso para las muestras MDX
-# cd /home/curso/tmp_Dia3/consensus_peak/MDX
-
-# for file in SRR15343192 SRR15343193 SRR15343194
-# do
-# 	ln -s /home/curso/tmp_Dia3/peak_calling_10M/${file}_peak_refinedFilt_peaks.narrowPeak .
-# done
-
-# /home/curso/Software/dia3/consensus/mspc/mspc -i *narrowPeak -r bio -s 0,01 -w 0,05 -a 0,05 -c 2 -p /home/curso/Software/dia3/consensus/MSPC_configuration.json
 ```
 
 ## 7. Differentially Accesible Regions (DARs) analysis
 
 ```bash
-# Prepara el ambiente
+# Load conda environment
 conda deactivate
 conda activate Dia3_R_2025
 
-# Crea un directorio en el que realizar el análisis y sitúate en él.
+# Create a folder to store DARs analysis result
 mkdir /home/curso/dia3/DARs
 cd /home/curso/dia3/DARs
 
-# Create a symbolic link to sample sheet
-# ln -s /home/curso/Software/dia3/DARs_10M/samplesheet.csv .
-# ln -s /home/curso/Software/dia3/alignment_10M/*_sorted_dedup_filtered.bam .
-# ln -s /home/curso/tmp_Dia3/peak_calling_10M/*narrowPeak .
-
-# Haz el análisis de regiones diferencialmente accesibles
-Rscript --vanilla /home/curso/Software/dia3/DARs_10M/diffbind_deseq.R \
+# Run DARs analysis
+Rscript --vanilla /home/curso/Software/dia3/diffbind_deseq.R \
     -d /home/curso/Software/dia3/diffbind.config \
     -l 0.5 \
     -g "/home/curso/dia3/reference/Mus_musculus.GRCm39.107.chr.gtf" \
@@ -573,86 +531,64 @@ Rscript --vanilla /home/curso/Software/dia3/DARs_10M/diffbind_deseq.R \
 
 ## 8. DARs annotation
 
-Now that we have identified the peaks that are differentially expressed between samples, lets annotate them. 
+Now that we have identified the peaks showing differential accesibility between conditions, lets annotate the genomic region they overlap (promoter, introns, ...). For annotation we will use `Homer`.
 
 ```bash
-# Parsea y formatea los listados
-# de DARs
-# sed 's/,/\t/g' DiffBind.res.MDX-WT.FDR.05.csv | sed 's/"//g' | cut -f2,3,4,10,11,13,14,22| sort -k6 | grep -v "Fold" > DiffBind.res.MDX-WT.FDR.05.tsv
+# Load conda environment
+conda deactivate
+conda activate Dia3-Homer
+
+# Parse DiffBind output file with DARs
+# keep columns of interest (chr, start, end, peak_name, FC, p-val, closest gene ENSEMBL ID and gene name)
 awk -F',' 'NR>1 {gsub(/"/,"",$0); print $2, $3, $4, $13, $10, $11, $14, $22}' OFS='\t' DiffBind.res.MDX-WT.FDR.05.csv > DiffBind.res.MDX-WT.FDR.05.tsv
 
 
-# de todos los picos
-# sed 's/,/\t/g' DiffBind.res.MDX-WT.all.csv |sed 's/"//g' |cut -f2,3,4,10,11,14,22|sort -k6 |grep -v "Fold" > DiffBind.res.MDX-WT.all.tsv 
-
-conda deactivate
-conda activate Dia3-Homer
+# Annotate peaks to the closest
 annotatePeaks.pl DiffBind.res.MDX-WT.FDR.05.tsv /home/curso/dia3/reference/mm39_107.fa -gid -gtf /home/curso/dia3/reference/Mus_musculus.GRCm39.107.chr.gtf -cpu 6 > DARs_MDX-WT_annotated.bed
 
-#annotatePeaks.pl DiffBind.res.MDX-WT.all.tsv /home/curso/tmp_Dia3/reference/mm39_107.fa -gid -gtf /home/curso/tmp_Dia3/reference/Mus_musculus.GRCm39.107.chr.gtf -cpu 6 > ALLPEAKS_toAnnot_ANNOTATED.bed
-
-# Visualize the annotated peaks output file
+# You can take a look to the annotated peaks output file
 less -S DARs_MDX-WT_annotated.bed # q<ENTER> to exit
 
 ```
 
 ## 9. Motif finding
 
-Lets find which motif are different in promoters from differentially accesible regions, potentially related to genes that are regulated differentially in MDX and WT.
-
+Let's find out which motifs are different in promoters with differential accesibility.
 
 ```bash
-
 mkdir /home/curso/dia3/DARs_motifs
 cd /home/curso/dia3/DARs_motifs
 
 # Copy the table with all Differential Accessible Regions annotated according to the genomic region 
 cp /home/curso/dia3/DARs/DARs_MDX-WT_annotated.bed .
 
-# Grep only differentially accesible regions located in promoters
+# Take only differentially accesible regions located in promoters
 grep promoter-TSS DARs_MDX-WT_annotated.bed > DARs_MDX-WT_annotated_promoters.bed
-#grep promoter-TSS DARs_MDX-WT_annotated.bed  > DARs_MDX-WT_annotated_promoters.bed
 
-# grep promoter-TSS DARs_MDX_toAnnot_ANNOTATED.bed  > DARs_MDX_toAnnot_ANNOTATED_PROMOT.bed
-# grep promoter-TSS ALLPEAKS_toAnnot_ANNOTATED.bed  > ALLPEAKS_toAnnot_ANNOTATED_PROMOT.bed
-
+# Find motifs enriched in this regions compared to the rest of promoters in the genome
 findMotifsGenome.pl DARs_MDX-WT_annotated_promoters.bed /home/curso/dia3/reference/mm39_107.fa homer_motifs_PROMOTER_DARs -p 12 -mset vertebrates 
-#findMotifsGenome.pl DARs_MDX_toAnnot_ANNOTATED_PROMOT.bed mm39_107.fa homer_motifs_PROMOT_DARs -p 12 -mset vertebrates 
-
-#findMotifsGenome.pl DARs_MDX_toAnnot_ANNOTATED_PROMOT.bed mm39_107.fa homer_motifs_PROMOT_DARs -p 12 -mset vertebrates 
-#findMotifsGenome.pl DARs_MDX_toAnnot_ANNOTATED.bed mm39_107.fa homer_motifs_DARs_all -p 12 -mset vertebrates 
- 
-# grep -F -v -f DARs_MDX_toAnnot_ANNOTATED.bed ALLPEAKS_toAnnot_ANNOTATED.bed > NoDARs.tsv
-
-# findMotifsGenome.pl DARs_MDX_toAnnot_ANNOTATED_PROMOT.bed mm39_107.fa homer_motifs_PROMOT_DARs_BACKGROUND -bg NoDARs.tsv -p 12 -mset vertebrates 
-# findMotifsGenome.pl DARs_MDX_toAnnot_ANNOTATED.bed mm39_107.fa homer_motifs_DARs_all_BACKGROUND -bg NoDARs.tsv -p 12 -mset vertebrates 
 ```
 
 ## 10. Pathway enrichment analysis
 
-Finally for genes associated a differentially expressed DARs.
+Finally, let's find out pathways enriched among the genes associated to DARs.
 
-Hacemos GSEA con los genes asociados a picos DARs significativos. Ranqueamos los genes en base al FC.
+DARs associated genes are ranked based on the peak FC between conditions. 
 
 ```bash
-
+# Load conda environment
 conda deactivate
 conda activate Dia4_R
 
+# Create a dir to store results
 mkdir /home/curso/dia3/pathway
 cd /home/curso/dia3/pathway
 
-# Corre GSEA
+# Parse DiffBind output to keep ENSEMBL ID, FC and q-value columns
 (echo -e "ID\tlog2FC\tqvalue"; awk -F',' 'NR>1 {gsub(/"/,"",$0); print $14, $10, $12}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.csv) > MDX_WT_DARs_FC_qval.tsv
 
+# Run GSEA using GO terms as reference
 Rscript --vanilla /home/curso/Software/dia3/gseaGO_analysis.R -i MDX_WT_DARs_FC_qval.tsv -o org.Mm.eg.db -p MDX_vs_WT
-
-# awk -F',' 'NR>1 {gsub(/"/,"",$0); print $2, $3, $4, $13, $10, $11, $14, $22}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.csv > DiffBind.res.MDX-WT.FDR.05.tsv
-# (echo -e "ID\tlog2FC\tqvalue"; sed 's/,/\t/g' DiffBind.res.MDX-WT.FDR.05.csv |sed 's/"//g' |awk '{print $14, $10,$12}' OFS='\t'  |sed '1d') > MDX_WT_DARs.tsv
-
-# python3.8 clean_id_by_pvalue.py MDX_WT_DARs.tsv
-
-# Rscript --vanilla gse_go_analysis_by_hand_ENSEMBL_no-nPerm_v2.R -i MDX_WT_DARs_filtered.tsv -o org.Mm.eg.db -p MDX_vs_WT
 ```
 
 
