@@ -22,6 +22,8 @@ Load the conda environment "Dia1". This environment has installed a set of tools
 
 
 ```bash
+conda activate Dia1
+
 # Create a new folder to store the data from today's practice
 mkdir /home/curso/dia1
 ```
@@ -132,8 +134,9 @@ Rscript --vanilla coveragePlot.R depth_ONT_vs_ONTassembly.cov depth_illumina_vs_
 
 ## 5.  Annotation
 
-Genome annotation was performed using Prokka, which predicts coding sequences (CDSs), rRNAs, tRNAs, and other genomic features based on curated databases. The annotation was configured for bacterial genomes, specifying the genus and species to improve annotation accuracy.
+Genome annotation was performed using Prokka, which predicts coding sequences (CDSs), rRNAs, tRNAs, and other genomic features based on curated databases. The annotation was configured for bacterial genomes, specifying the genus and species to improve annotation accuracy. Activate a specific env to run prokka (Dia1-Prokka1).
 
 ```bash
+conda activate Dia1-Prokka1
 prokka --kingdom Bacteria --genus Escherichia --species coli --gcode 11 --usegenus --prefix ecoli ONT_assembly.fasta
 ```
