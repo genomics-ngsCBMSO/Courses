@@ -1,11 +1,3 @@
----
-output:
-  word_document: default
-  html_document: default
-  pdf_document: default
----
-
-
 # DIA 3. ATAC-seq
 
 **Servicio de Análisis Biocomputacional (SABio); CBM** \
