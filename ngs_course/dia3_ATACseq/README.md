@@ -1,3 +1,9 @@
+---
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
 
 
 # DIA 3. ATAC-seq
@@ -417,7 +423,7 @@ conda deactivate
 conda activate Dia3
 
 # Create a folder for filtered alignment with 10M reads
-mkdir dia3/alignment_flt_10M
+mkdir dia3/alignment_10M_flt
 
 # Create a symbolic link to BAMs generated with 10M reads
 cd /home/curso/dia3/alignment_10M_flt
