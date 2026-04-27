@@ -311,3 +311,4 @@ dependencies:
       - xlrd==2.0.1
       - yarl==1.9.4
       - zipp==3.15.0
+prefix: /home/curso/miniconda3/envs/Dia4_R
