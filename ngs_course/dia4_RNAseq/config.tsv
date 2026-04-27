@@ -1,0 +1,5 @@
+sample	file	condition
+67	67.tsv	WT
+55	55.tsv	WT
+61	61.tsv	Mutant
+66	66.tsv	Mutant
