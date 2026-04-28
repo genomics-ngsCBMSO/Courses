@@ -25,11 +25,11 @@ For bacteria and archaea, the most commonly used marker is the 16S ribosomal RNA
 
 In a 16S amplicon workflow:
 
-Specific hypervariable regions of the 16S rRNA gene are amplified using primers
-Amplicons are sequenced (typically Illumina paired-end)
-Sequences are denoised and clustered into ASVs (Amplicon Sequence Variants)
-ASVs are taxonomically annotated using reference databases
-Diversity and community structure are analyzed
+- Specific hypervariable regions of the 16S rRNA gene are amplified using primers
+- Amplicons are sequenced (typically Illumina paired-end)
+- Sequences are denoised and clustered into ASVs (Amplicon Sequence Variants)
+- ASVs are taxonomically annotated using reference databases
+- Diversity and community structure are analyzed
 
 This repository implements a complete 16S rRNA amplicon analysis pipeline using **QIIME2**, a state-of-the-art platform for microbiome bioinformatics.
 
@@ -39,7 +39,7 @@ In this project, we analyze publicly available 16S rRNA gene sequencing data pro
 (https://mothur.org/wiki/miseq_sop/).
 The overarching biological question motivating this dataset is:
 
-*How does natural variation in the gut microbiome relate to host physiology and stability over time?*
+>How does natural variation in the gut microbiome relate to host physiology and stability over time?
 
 To address this question, the Schloss Lab conducted a longitudinal microbiome study in mice, focusing on the early post-weaning period, a critical developmental window characterized by rapid physiological and metabolic changes.
 
@@ -51,13 +51,63 @@ The study specifically investigates whether the rapid increase in body weight du
 
 These early dynamics are compared with the microbiome observed later in life (days 140–150), a period assumed to represent a more stable microbial ecosystem.
 
-## 0. Environment setup
-
-Load the conda environment "Dia1". This environment has installed a set of tools that we will use at different steps in the practice. For checking which software is available in this environment we can run `conda list`.
-
+## Basic Linux Commands
 
 ```bash
-conda activate Dia1
+ls                                  # list directory contents
+ls -ltrh                            # long format, sorted by time, reverse order, human-readable sizes
+ll                                  # alias of ls -l
+
+mkdir dir_name                      # create one directory
+mkdir dir1_name dir2_name           # create multiple directories
+mkdir -p project/results            # create nested directories
+
+pwd                                 # showing your current path 
+
+cd                                  # change directory
+cd dir_name                         # go into a directory
+cd ..                               # go up one level
+cd ~                                # go to home directory
+cd -                                # go back to previous directory
+
+rm                                  # remove files (!permanent)
+rm file.txt                         # remove file
+rm -d dir_name                      # remove empty directory
+rm -r dir_name                      # remove directory recursively
+
+mv file.txt new_destination         # move file
+mv oldname.txt  newname.txt         # rename file
+mv *.txt folder/                    # move multiple files
+
+ln                                  # create hard links (same file, same inode)
+ln file.txt file2.txt               # create a hard link (file2.txt = same data as file.txt)
+
+ln -s                               # create symbolic links (shortcuts/pointers)
+ln -s file.txt link.txt             # create symlink to a file
+ln -s /path/file /path/symlink      # create symlink using absolute path (origin and destination paths)
+
+wget                                # download files from the web
+wget https://example.com/file.zip   # download file
+
+gzip file.txt                       # compress file to file.txt.gz
+gzip -d file.txt.gz                 # decompress file
+
+echo "Hello"                        # print text
+echo $PATH                          # print a variable
+
+cat file.txt                        # print entire file
+less file.txt                       # scrollable view (best for large files)
+head file.txt                       # first 10 lines
+tail file.txt                       # last 10 lines
+tail -n+2 file.txt                  # print file without first line
+```
+
+## 0. Environment setup
+
+Load the conda environment "*Dia5_qiime2-2022.11*". This environment has installed a set of tools that we will use at different steps in the practice. For checking which software is available in this environment we can run `conda list`.
+
+```bash
+conda activate Dia5_qiime2-2022.11
 
 # Create a new folder to store the data from today's practice
 mkdir /home/curso/dia5
@@ -146,11 +196,11 @@ QIIME2 requires a manifest file mapping sample IDs to FASTQ file paths.
 ```
 This produces manifest.csv, required for importing paired-end data.
 
-## 5. Importing Data into Qiime2
+## 5. Importing data into Qiime2
 
-All data that is used as input to QIIME 2 is in form of QIIME 2 artifacts, which contain information about the type of data and the source of the data. So, the first thing we need to do is import these sequence data files into a QIIME 2 artifact.
+All data that is used as input to QIIME 2 is in form of **QIIME 2 artifacts**, which contain information about the type of data and the source of the data. So, the first thing we need to do is import these sequence data files into a QIIME 2 artifact.
 
-The semantic type of this QIIME 2 artifact is *SampleData[PairedEndSequencesWithQuality]*. *PairedEndSequencesWithQuality* QIIME 2 artifacts contain paired end sequences in fastq format (with quality) that are demultiplexed.
+The semantic type of this QIIME 2 artifact is *SampleData[PairedEndSequencesWithQuality]*.
 
 ```bash
 qiime tools import \
@@ -160,7 +210,7 @@ qiime tools import \
   --input-format PairedEndFastqManifestPhred33
 ```
 
-## 6. Demultiplexing Summary
+## 6. Demultiplexing summary
 
 Always it’s useful to generate a summary of the reads imported. This allows us to determine how many sequences were obtained per sample, and also to get a summary of the distribution of sequence qualities at each position in our sequence data.
 
@@ -170,15 +220,15 @@ qiime demux summarize \
   --o-visualization paired_end_sequences.qzv
 ```
 
-All QIIME 2 visualizers (i.e., commands that take a `--o-visualization parameter`) will generate a Visualization (i.e., a.qzv file). Visualizations can be viewed by loading them with QIIME 2 View or using the next command line:
+All QIIME 2 visualizers (i.e., commands that take a `--o-visualization parameter`) will generate a Visualization (i.e., a.qzv file). Visualizations can be viewed by loading them with *QIIME 2 View* or using the next command line:
 
 ```bash
 qiime tools view paired_end_sequences.qzv
 ```
 
-## 7. Denoising and ASV Inference with DADA2
+## 7. Denoising and ASV inference with DADA2
 
-**DADA2** is a pipeline for detecting and correcting (where possible) Illumina amplicon sequence data. As implemented in the q2-dada2 plugin, this quality control process will additionally filter any phiX reads (commonly present in marker gene Illumina sequence data) that are identified in the sequencing data, and will filter chimeric sequences.
+**DADA2** is a pipeline for detecting and correcting (where possible) Illumina amplicon sequence data. As implemented in the `q2-dada2` plugin, this quality control process will additionally filter any phiX reads (commonly present in marker gene Illumina sequence data) that are identified in the sequencing data, and will filter chimeric sequences.
 
 The `dada2 denoise-paired` method requires two parameters that are used in quality filtering: `--p-trim-left m`, which trims off the first m bases of each sequence, and `--p-trunc-len n` which truncates each sequence at position n. This allows the user to remove low quality regions of the sequences. To determine what values to pass for these two parameters, we should review the Interactive Quality Plot tab in the `paired_end_sequences.qzv` file that was generated above.
 
@@ -232,12 +282,12 @@ qiime feature-table tabulate-seqs \
 qiime tools view rep-seqs.qzv
 ```
 
-## 9. Taxonomic Assignment Using BLAST
+## 9. Taxonomic assignment using BLAST
 
 After denoising and inferring high‑resolution Amplicon Sequence Variants (ASVs), the next critical step in a 16S rRNA amplicon analysis is taxonomic assignment.
 This step aims to answer the question:
 
-**Which bacterial taxa do the inferred ASVs correspond to?**
+>Which bacterial taxa do the inferred ASVs correspond to?
 
 Taxonomic assignment links exact nucleotide sequences (ASVs) to known microbial lineages, allowing biological interpretation of community composition.
 
@@ -307,4 +357,81 @@ qiime feature-table relative-frequency \
 biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
 ```
 
-https://amplicon-docs.qiime2.org/en/stable/tutorials/moving-pictures/
+## 10. Generate a tree for phylogenetic diversity analyses
+
+QIIME supports several phylogenetic diversity metrics, including Faith’s Phylogenetic Diversity and weighted and unweighted UniFrac. In addition to counts of features per sample, these metrics require a **rooted phylogenetic tree** relating the features to one another. This information will be stored in a `Phylogeny[Rooted]` QIIME2 artifact. To generate a phylogenetic tree we will use `align-to-tree-mafft-fasttree` pipeline from the `q2-phylogeny` plugin.
+
+First, the pipeline uses the mafft program to perform a multiple sequence alignment of the sequences in our `FeatureData[Sequence]` to create a `FeatureData[AlignedSequence]` QIIME2 artifact. Next, the pipeline masks (or filters) the alignment to remove positions that are highly variable. These positions are generally considered to add noise to a resulting phylogenetic tree. Following that, the pipeline applies FastTree to generate a phylogenetic tree from the masked alignment. The FastTree program creates an unrooted tree, so in the final step in this section midpoint rooting is applied to place the root of the tree at the midpoint of the longest tip-to-tip distance in the unrooted tree.
+
+```bash
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences rep-seqs.qza \
+  --o-alignment aligned-rep-seqs.qza \
+  --o-masked-alignment masked-aligned-rep-seqs.qza \
+  --o-tree unrooted-tree.qza \
+  --o-rooted-tree rooted-tree.qza
+```
+
+## 11. Alpha and beta diversity
+
+QIIME 2’s diversity analyses are available through the `q2-diversity` plugin, which supports computing alpha and beta diversity metrics, applying related statistical tests, and generating interactive visualizations. We’ll first apply the `core-metrics-phylogenetic` method, which rarefies a `FeatureTable[Frequency]` to a user-specified depth, computes several alpha and beta diversity metrics, and generates principle coordinates analysis (PCoA) plots using Emperor for each of the beta diversity metrics. The metrics computed by default are:
+
+Alpha diversity
+
+- Shannon’s diversity index (a quantitative measure of community richness)
+- Observed Features (a qualitative measure of community richness)
+- Faith’s Phylogenetic Diversity (a qualitative measure of community richness that incorporates phylogenetic relationships between the features)
+- Evenness (or Pielou’s Evenness; a measure of community evenness)
+
+Beta diversity
+
+- Jaccard distance (a qualitative measure of community dissimilarity)
+- Bray-Curtis distance (a quantitative measure of community dissimilarity)
+- unweighted UniFrac distance (a qualitative measure of community dissimilarity that incorporates phylogenetic relationships between the features)
+- weighted UniFrac distance (a quantitative measure of community dissimilarity that incorporates phylogenetic relationships between the features)
+
+
+```bash
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table feature_table.qza \
+  --p-sampling-depth 1625 \
+  --m-metadata-file map_file.txt \
+  --output-dir core-metrics-results
+```
+An important parameter that needs to be provided to this command is **`--p-sampling-depth`**, which is the even sampling (i.e. rarefaction) depth.
+
+Alpha and beta diversity metrics are sensitive to sequencing depth:
+
+- Samples with more reads tend to show higher observed richness
+- Differences in read counts can introduce artificial diversity differences
+- Direct comparison of samples with unequal depths is statistically invalid
+
+To address this issue, QIIME2 uses **rarefaction**: 
+
+>Randomly subsampling each sample to the same number of sequences (sampling depth).
+
+The parameter `--p-sampling-depth` defines:
+
+> The number of sequences that will be randomly sampled from each sample before calculating diversity metrics
+
+All samples with fewer reads than this value will be excluded from the analysis.
+
+To avoid discarding any samples, we selected the sampling depth based on the minimum sequencing depth across all samples. For that, we inspect the feature table, identify the sample with the lowest *feature (read) count* and set `--p-sampling-depth` equal to that value, in our case, 1625.
+
+## 12. Alpha rarefaction curve
+
+In this section we’ll explore alpha diversity as a function of sampling depth using the `qiime diversity alpha-rarefaction` visualizer. This visualizer computes one or more alpha diversity metrics at multiple sampling depths, in steps between 1 (optionally controlled with `--p-min-depth`) and the value provided as `--p-max-depth`. Average diversity values will be plotted for each sample at each even sampling depth, and samples can be grouped based on metadata in the resulting visualization if sample metadata is provided with the `--m-metadata-file` parameter.
+
+```bash
+qiime diversity alpha-rarefaction \
+  --i-table feature_table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 12639 \
+  --m-metadata-file map_file.txt \
+  --o-visualization alpha-rarefaction.qzv
+```
+
+An important parameter that needs to be provided to this command is **`--p-max-depth`**, which is the maximum sequencing depth used to compute rarefaction curves.
+
+To fully visualize diversity accumulation, we set `--p-max-depth` based on the maximum sequencing depth present in the dataset. For that, we inspect the feature table, identify the sample with the highest *feature (read) count* and set `--p-max-depth` equal to that value, in our case, 12639.
