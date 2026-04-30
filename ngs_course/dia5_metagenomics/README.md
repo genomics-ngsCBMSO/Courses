@@ -126,10 +126,10 @@ Download the sequence reads that we’ll use in this analysis. These sequences a
 mkdir reads
 
 #Illumina reads
-wget https://www.mothur.org/w/images/d/d6/MiSeqSOPData.zip
-unzip MiSeqSOPData.zip
+wget https://mothur.s3.us-east-2.amazonaws.com/wiki/miseqsopdata.zip​
+unzip miseqsopdata.zip
 mv MiSeq_SOP/*.fastq reads/
-rm -rf MiSeq_SOP/
+rm -r MiSeq_SOP/ miseqsopdata.zip
 ```
 
 ## 2.  Quality check with fastqc
@@ -291,18 +291,28 @@ This step aims to answer the question:
 
 Taxonomic assignment links exact nucleotide sequences (ASVs) to known microbial lineages, allowing biological interpretation of community composition.
 
-In this pipeline, taxonomy is assigned using the *Greengenes 13_5* reference database. For that we need to import the reference sequences and taxonomy:
+In this pipeline, taxonomy is assigned using the *Greengenes 13_5* reference database: 
+
+```bash
+# Download the reference
+mkdir reference
+wget -P reference/ https://ftp.microbio.me/greengenes_release/gg_13_5/gg_13_5.fasta.gz
+wget -P reference/ https://ftp.microbio.me/greengenes_release/gg_13_5/gg_13_5_taxonomy.txt.gz
+gunzip reference/*
+```
+
+For that we need to import the reference sequences and taxonomy:
 
 ```bash
 qiime tools import \
   --type FeatureData[Sequence] \
-  --input-path gg_13_5.fasta \
+  --input-path reference/gg_13_5.fasta \
   --output-path rep_seqs_gg.qza
 
 
 qiime tools import \
   --type FeatureData[Taxonomy] \
-  --input-path gg_13_5_taxonomy.txt \
+  --input-path reference/gg_13_5_taxonomy.txt \
   --output-path tax_gg.qza \
   --input-format HeaderlessTSVTaxonomyForm
 ```
