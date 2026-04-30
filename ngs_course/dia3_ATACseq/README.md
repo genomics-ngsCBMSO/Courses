@@ -4,6 +4,8 @@
 **Edition**: April, 2026 \
 **Last update**: 08/04/2026
 
+All raw sequencing data used in this pipeline, as well as all intermediate and final files generated during processing, are available at the following link: **https://saco.csic.es/s/YPimHNWAxjtq9WY**
+
 ## Introduction to ATAC-seq
 
 ATAC-seq (Assay for Transposase-Accessible Chromatin with high-throughput sequencing) is a method for determining chromatin accessibility across the genome.

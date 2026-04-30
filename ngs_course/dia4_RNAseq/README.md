@@ -4,6 +4,8 @@
 **Edition**: April, 2026 \
 **Last update**: 27/04/2026
 
+All raw sequencing data used in this pipeline, as well as all intermediate and final files generated during processing, are available at the following link: **https://saco.csic.es/s/oTbagCE8e3gEHZP**
+
 ## Introduction to RNAseq
 
 RNA-seq (RNA sequencing) is a method for quantifying gene expression across the transcriptome.

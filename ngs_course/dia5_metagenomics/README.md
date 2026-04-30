@@ -4,6 +4,8 @@
 **Edition**: April, 2026 \
 **Last update**: 27/04/2026
 
+All raw sequencing data used in this pipeline, as well as all intermediate and final files generated during processing, are available at the following link: **https://saco.csic.es/s/bjj5qkWLJy4xoXL**
+
 ## Introduction to metagenomics
 
 Metagenomics is a molecular biology and bioinformatics approach that enables the study of genetic material directly recovered from environmental samples, without the need to isolate or culture individual organisms. This is particularly important because the vast majority of microorganisms (estimated >99%) are not culturable using standard laboratory techniques.
