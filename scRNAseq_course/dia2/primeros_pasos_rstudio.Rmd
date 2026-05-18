@@ -227,7 +227,7 @@ mis_datos <- read.csv("notas.csv")
 head(mis_datos)
 summary(mis_datos)
 
-# --- PASO 4: CREAR EL GRÁFICO ---
+# --- PASO 6: CREAR EL GRÁFICO ---
 ggplot(data = mis_datos) +
   geom_point(mapping = aes(x = Horas_Estudio, y = Nota_Examen), color = "blue", size = 4) +
   labs(title = "Impacto del Estudio en las Notas",
