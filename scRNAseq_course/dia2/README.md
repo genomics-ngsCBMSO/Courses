@@ -19,7 +19,7 @@ wget "https://cf.10xgenomics.com/supp/cell-exp/refdata-gex-GRCh38-2024-A.tar.gz"
 tar -xzvf refdata-gex-GRCh38-2024-A.tar.gz
 ```
 
-### Opción B: Construcción de Referencia personalizada (cellranger mkref)
+### Opción B: Construcción de Referencia personalizada (`cellranger mkref`)
 Ejemplo práctico utilizando únicamente el cromosoma Y obtenido desde Ensembl (Release 114).
 
 ```bash
@@ -73,7 +73,7 @@ cellranger count --id=PBMC \
 
 ---
 
-## 🧼 Paso 3: Corrección de ARN ambiental (cellbender)
+## 🧼 Paso 3: Corrección de ARN ambiental (`cellbender`)
 
 Aplicación de un modelo de aprendizaje profundo para eliminar background, contaminación por transcriptoma libre y falsas gotas positivas (*empty droplets*).
 
@@ -100,11 +100,11 @@ library(Seurat)
 
 # 1. Leer los directorios MEX filtrados generados
 data_dir <- "cellranger/PBMC/outs/filtered_feature_bc_matrix"
-counts <- Read10X(data.dir = data_dir)
+data <- Read10X(data.dir = data_dir)
 
 # 2. Inicializar el objeto Seurat básico
-pbmc_object <- CreateSeuratObject(counts = counts, project = "PBMC_1K", min.cells = 3, min.features = 200)
+seu <- CreateSeuratObject(counts = data)
 
 # Visualizar estructura del objeto creado
-print(pbmc_object)
+head(seu)
 ```
