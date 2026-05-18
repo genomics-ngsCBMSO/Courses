@@ -1,69 +1,113 @@
-## 1.2 Descarga referencias / Construir Referencias
+# 🧬 Pipeline de Análisis Single-Cell RNA-seq (Día 2)
 
-mkdir reference
-cd reference
+Este repositorio contiene los flujos de trabajo prácticos para la descarga/construcción de referencias genómicas, alineamiento y cuantificación con **Cell Ranger**, eliminación de ruido ambiental con **CellBender** e importación de datos en **R (Seurat)**.
 
-#Podemos descargar la referencia ya hecha de la web oficial de cellranger (solo para humano, ratón y otros organismos modelo)
+## 🛠️ Paso 1: Gestión de Referencias Genómicas
 
-wget "https://cf.10xgenomics.com/supp/cell-exp/refdata-gex-GRCh38-2024-A.tar.gz"
+### Opción A: Descarga de Referencia Oficial (Humano)
+Ideal para organismos modelo estándar. Descarga directa desde los servidores de 10x Genomics.
+
+```bash
+# Crear y acceder al directorio de trabajo
+mkdir -p reference && cd reference
+
+# Descargar referencia GRCh38 oficial
+wget "https://10xgenomics.com"
+
+# Descomprimir el archivo tarball
 tar -xzvf refdata-gex-GRCh38-2024-A.tar.gz
+cd ..
+```
 
-#O podemos construirla con cellranger mkref
+### Opción B: Construcción de Referencia Personalizada (`cellranger mkref`)
+Ejemplo práctico utilizando únicamente el Cromosoma Y obtenido desde Ensembl (Release 114).
 
-mkdir chrY_example
-cd chrY_example
+```bash
+mkdir -p chrY_example && cd chrY_example
 
-wget https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
+# 1. Obtener y normalizar archivo FASTA (Secuencia)
+wget https://ensembl.org
 gzip -d Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
 mv Homo_sapiens.GRCh38.dna.chromosome.Y.fa chrY.fa
 
-#Quitamos todo lo que no sea ID de Secuencia
-awk '{if ($1 ~ />/){print $1} else {print $_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa
+# Limpiar IDs de secuencia y pasar a mayúsculas para homogeneizar
+awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa
 
-wget https://ftp.ensembl.org/pub/release-114/gtf/homo_sapiens/Homo_sapiens.GRCh38.114.chr.gtf.gz
+# 2. Obtener y filtrar archivo GTF (Anotación)
+wget https://ensembl.org
 gzip -d Homo_sapiens.GRCh38.114.chr.gtf.gz
-awk '$1 ~ /^#/ {print $0;next} {if ($1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf
 
+# Extraer metadatos iniciales y conservar únicamente las líneas asignadas al cromosoma Y
+awk '\$1 ~ /^#/ {print \$0;next} {if (\$1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf
 
-#Creamos la referencia con makeref
+# 3. Indexar referencia con Cell Ranger
+cellranger mkref --genome=chrY_index --fasta=chrY_mod.fa --genes=chrY.gtf
+cd ..
+```
 
-cellranger mkref --genome chrY --fasta chrY.fa --genes chrY.gtf 
+---
 
+## 🚀 Paso 2: Alineamiento y Cuantificación (`cellranger count`)
 
-########################
-#DIA 2
-########################
+Mapeo de lecturas FASTQ, asignación de códigos de barras (Cell Barcodes), conteo de UMIs y generación de matrices de expresión digital.
 
-## 2.1 CELLRANGER: ALINEAMIENTO Y CUANTIFICACIÓN
+```bash
+mkdir -p cellranger && cd cellranger
 
-mkdir cellranger
-cd cellranger
-
+# Crear enlaces simbólicos a las lecturas del Día 1 para optimizar espacio en disco
 ln -s ../dia1/reads/*gz ./
 
+# Ejecutar el pipeline de conteo cuantitativo
 cellranger count --id=PBMC \
-           --transcriptome=../dia1/reference/refdata-gex-GRCh38-2024-A/ \
+           --transcriptome=../reference/refdata-gex-GRCh38-2024-A/ \
            --fastqs=./ \
            --sample=pbmc_1k_v3 \
            --create-bam=true \
            --localcores=8 \
            --localmem=64
 
-##2.2 CELLBENDER: FILTRADO DE RNA AMBIENTAL Y RUIDO
+cd ..
+```
 
-mkdir cellbender
-cd cellbender
+---
 
+## 🧼 Paso 3: Corrección de ARN Ambiental (`cellbender`)
+
+Aplicación de un modelo de aprendizaje profundo para remover background, contaminación por transcriptoma libre y falsas gotas positivas (*empty droplets*).
+
+```bash
+mkdir -p cellbender && cd cellbender
+
+# Ejecutar remoción de ruido sobre la matriz cruda generada por Cell Ranger
 cellbender remove-background \
-           --input raw_feature_bc_matrix.h5 \
-           --output raw_feature_bc_matrix_cellbender.h5
+           --input ../cellranger/PBMC/outs/raw_feature_bc_matrix.h5 \
+           --output pbmc_cellbender_cleaned.h5
 
+cd ..
+```
 
-## 2.2 LEER EN R
+---
 
-> R
+## 📊 Paso 4: Carga y Análisis de Datos en R (`Seurat`)
 
+Flujo final para importar las matrices procesadas dentro del ecosistema bioinformático de R e inicializar el objeto de análisis unicelular.
+
+```R
+# Iniciar sesión interactiva de R
+R
+```
+
+```R
+# Cargar librería analítica
 library(Seurat)
 
-data <- Read10X(data.dir = "filtered_feature_bc_matrix")
-sp <- CreateSeuratObjetc(sp)
+# 1. Leer los directorios MEX filtrados generados
+data_dir <- "cellranger/PBMC/outs/filtered_feature_bc_matrix"
+counts <- Read10X(data.dir = data_dir)
+
+# 2. Inicializar el objeto Seurat básico
+pbmc_object <- CreateSeuratObject(counts = counts, project = "PBMC_1K", min.cells = 3, min.features = 200)
+
+# Visualizar estructura del objeto creado
+print(pbmc_object)
+```
