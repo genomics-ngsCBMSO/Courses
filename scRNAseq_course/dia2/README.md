@@ -84,8 +84,21 @@ cd cellbender
 # Ejecutar cellbender
 cellbender remove-background \
            --input ../cellranger/PBMC/outs/raw_feature_bc_matrix.h5 \
-           --output pbmc_cellbender_cleaned.h5
+           --output raw_feature_bc_matrix_cellbender.h5
 ```
+
+Como el resultado anterior sigue la tendencia inicial de entrenamiento pero sufre grandes fluctuaciones y una caída drástica al final y además no predice bien el número de células, aplicaremos un --learning-rate menor y añadiremos en comando: --expected-cells
+
+```bash
+# Ejecutar cellbender cambiando parámetros
+cellbender remove-background \
+cellbender remove-background --input raw_feature_bc_matrix.h5   --expected-cells 1221 y --learning-rate 0.000005 
+--output raw_feature_bc_matrix_cellbender_ECLR.h5
+
+```
+
+
+
 
 ---
 
