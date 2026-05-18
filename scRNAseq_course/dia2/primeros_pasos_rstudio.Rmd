@@ -1,0 +1,236 @@
+# ==============================================================================
+# PRIMEROS PASOS CON R
+# ==============================================================================
+
+
+# Esto es un comentario, R no lo lee.
+# R funciona como una calculadora gigante.
+getwd()
+2 + 2
+log(10)
+# Guardamos un valor en una variable:
+mi_edad <- 26 
+
+# Ahora podemos operar con ella:
+tu_edad <- mi_edad + 5
+
+z <- c(tu_edad,mi_edad)
+
+w <- mean(z)
+
+round(w, digits=0)
+
+
+# ==============================================================================
+# CÓMO DEFINIR VECTORES Y TIPOS DE OBJETOS
+# ==============================================================================
+
+# Para crear un vector usamos la función c() que significa "combinar" o "concatenar".
+
+# 1. VECTORES NUMÉRICOS (Double / Integer)
+# ------------------------------------------------------------------------------
+notas <- c(5, 8.5, 7, 10, 4.2)
+horas_estudio <- c(2, 5, 4, 8, 1)
+
+# Operaciones vectoriales: R opera elemento por elemento automáticamente
+notas + 1          # Suma 1 a cada nota
+notas * horas_estudio # Multiplica la primera nota por la primera hora, etc.
+
+
+# 2. VECTORES DE TEXTO (Character)
+# ------------------------------------------------------------------------------
+# ¡Importante! Siempre llevan comillas.
+alumnos <- c("Ana", "Carlos", "María", "Luis", "Elena")
+
+
+# 3. VECTORES LÓGICOS (Logical)
+# ------------------------------------------------------------------------------
+# Solo aceptan valores TRUE (Verdadero) o FALSE (Falso). En mayúsculas.
+aprobo <- c(TRUE, TRUE, TRUE, TRUE, FALSE)
+
+# También nacen de hacer preguntas a R:
+condicion <- notas >= 5
+print(condicion) # Devuelve un vector lógico
+
+
+# 4. ¿CÓMO INSPECCIONAR UN VECTOR? (Funciones clave)
+# ------------------------------------------------------------------------------
+length(alumnos)  # ¿Cuántos elementos tiene? (Resultado: 5)
+class(notas)     # ¿De qué tipo es? (Resultado: "numeric")
+class(alumnos)   # ¿De qué tipo es? (Resultado: "character")
+
+
+# 5. EL PELIGRO DE LA COERCIÓN (Regla de oro en R)
+# ------------------------------------------------------------------------------
+# Un vector NO puede mezclar tipos. Si lo fuerzas, R transforma todo a texto:
+mezcla <- c(7, "Ana", TRUE)
+class(mezcla)    # Resultado: "character" (El 7 ahora es "7" y el TRUE es "TRUE")
+
+
+# ==============================================================================
+# ACCEDER A ELEMENTOS, LISTAR Y BORRAR
+# ==============================================================================
+
+# Crear un vector de números pares
+x <- c(2, 4, 6, 8)
+
+x[2]    # Extrae el segundo elemento (4)
+x[-2]   # Extrae todo MENOS el segundo elemento (2 6 8)
+x[6]    # Da NA (No existe la posición 6)
+
+x[6] <- 12 # R amplía el vector y rellena los huecos con NA
+x          # Ver resultado modificado
+
+# Listar y borrar objetos de la memoria
+ls()            # Lista todos los objetos creados
+rm(x)           # Borra el objeto x
+rm(list = ls()) # Borra absolutamente TODO el entorno de trabajo
+
+
+
+# ==============================================================================
+# MATRICES
+# ==============================================================================
+
+# Crear matriz (Por defecto se rellena por COLUMNAS)
+m1 <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)
+
+# Crear matriz rellenando por FILAS (byrow = T)
+m2 <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2, byrow = TRUE)
+
+# Rellenar sabiendo solo una dimensión
+m3 <- matrix(c(1, 2, 3, 4, 5, 6), ncol = 3)
+
+# Poner nombres a Filas y Columnas
+colnames(m3) <- c("Var1", "Var2", "Var3")
+rownames(m3) <- c("Obs1", "Obs2")
+
+# Averiguar dimensiones
+dim(m3)    # Filas y Columnas
+dim(m3)[1] # Solo filas
+dim(m3)[2] # Solo columnas
+
+# Añadir filas (rbind) y columnas (cbind)
+matriz_base <- matrix(c(1, 2, 3, 4), 2, 2)
+vector_nuevo <- c(5, 6)
+
+rbind(matriz_base, vector_nuevo) # Añade abajo como fila
+cbind(matriz_base, vector_nuevo) # Añade a la derecha como columna
+
+
+# ==============================================================================
+# DATA FRAMES (La clásica tabla de datos)
+# ==============================================================================
+# Es una colección de vectores de la MISMA longitud puestos como columnas.
+# Cada columna puede tener un tipo de dato distinto (números, texto, lógicos).
+
+# Crear un Data Frame desde cero
+mi_tabla <- data.frame(
+  ID = c(1, 2, 3),
+  Nombre = c("Ana", "Luis", "Carlos"),
+  Edad = c(23, 30, 25),
+  Empleado = c(TRUE, FALSE, TRUE)
+)
+
+# Acceder a los datos de un Data Frame
+mi_tabla$Edad          # Usar "$" extrae una columna completa como vector
+mi_tabla[1, ]          # Extrae la FILA 1 completa [fila, columna]
+mi_tabla[, 2]          # Extrae la COLUMNA 2 completa
+mi_tabla[2, 3]         # Extrae un dato exacto: fila 2, columna 3 (Resultado: 30)
+
+
+# ==============================================================================
+# LISTAS (El contenedor universal)
+# ==============================================================================
+# Una lista permite guardar objetos de CUALQUIER tipo, tamaño y dimensión.
+
+# Crear una lista con un poco de todo
+mi_lista <- list(
+  texto = "Curso de R",
+  vector_num = c(10, 20, 30),
+  matriz = matrix(1:4, 2, 2),
+  tabla = mi_tabla # ¡Metemos el Data Frame que creamos arriba!
+)
+
+# Acceder a elementos de una Lista
+# ¡Importante! Se usan dobles corchetes [[]] o el signo $ si tienen nombre.
+mi_lista[[1]]          # Extrae el primer objeto ("Curso de R")
+mi_lista$vector_num    # Extrae el vector por su nombre
+mi_lista$tabla$Nombre  # Entra a la lista, coge el Data Frame y extrae la columna Nombre
+
+
+# ==============================================================================
+# FACTORES (Datos categóricos)
+# ==============================================================================
+# Sirven para almacenar variables cualitativas con un número fijo de categorías (Niveles).
+
+tallas <- c("M", "S", "L", "M", "S")
+class(tallas)          # Resultado: "character"
+
+# Transformar a Factor para que R entienda las categorías
+tallas_factor <- factor(tallas, levels = c("S", "M", "L"))
+class(tallas_factor)   # Resultado: "factor"
+levels(tallas_factor)  # Muestra los niveles: "S" "M" "L"
+
+
+# ==============================================================================
+# FUNCIONES (Automatizar tareas)
+# ==============================================================================
+# Estructura básica: nombre <- function(argumentos) { código }
+
+# Crear una función que calcula el porcentaje de un número
+calcular_porcentaje <- function(total, porcentaje) {
+  resultado <- (total * porcentaje) / 100
+  return(resultado)
+}
+
+# Usar nuestra propia función
+calcular_porcentaje(total = 500, porcentaje = 15) # Resultado: 75
+
+
+# ==============================================================================
+# IMPORTAR Y EXPORTAR DATOS. HACER GRAFICOS
+# ==============================================================================
+
+
+# --- CONFIGURACIÓN INICIAL (Solo la primera vez) ---
+# install.packages("tidyverse") 
+#El equivalente para instalar y activar paquetes de datos biológicos o genómicos: BiocManager::install(Seurat)
+# --- PASO 1: ACTIVAR HERRAMIENTAS ---
+library(Seurat)
+library(help="Seurat")
+
+# --- PASO 2: CREAR DATOS ---
+tabla_alumnos <- data.frame(
+  Horas_Estudio = c(2, 4, 6, 8, 10),
+  Nota_Examen   = c(5, 6, 7, 9, 10)
+)
+
+# --- PASO 3: EXPLORAR LOS DATOS ---
+head(tabla_alumnos)   # Muestra las primeras filas
+summary(tabla_alumnos) # Muestra un resumen estadístico
+
+# --- PASO 4: GUARDAR LOS DATOS ---
+
+write.csv(tabla_alumnos, "notas.csv", row.names = FALSE)
+
+
+# --- PASO 5: EJEMPLO DE CREACIÓN DE GRÁFICOS ---
+
+# 1. Cargar la herramienta de gráficos
+library(tidyverse)
+
+# 2. Leer el archivo guardado
+mis_datos <- read.csv("notas.csv")
+
+# 3. Inspeccionar el contenido
+head(mis_datos)
+summary(mis_datos)
+
+# --- PASO 4: CREAR EL GRÁFICO ---
+ggplot(data = mis_datos) +
+  geom_point(mapping = aes(x = Horas_Estudio, y = Nota_Examen), color = "blue", size = 4) +
+  labs(title = "Impacto del Estudio en las Notas",
+       x = "Horas de Estudio",
+       y = "Nota del Examen") +
+  theme_minimal()
