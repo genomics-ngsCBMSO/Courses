@@ -89,7 +89,7 @@ cellbender remove-background \
 
 ---
 
-## 📊 Paso 4: Carga y análisis de datos en R (Seurat)
+## 📊 Paso 4: Carga y análisis de datos en R (`Seurat`)
 
 Flujo final para importar las matrices procesadas dentro de R e inicializar el objeto de análisis.
 
