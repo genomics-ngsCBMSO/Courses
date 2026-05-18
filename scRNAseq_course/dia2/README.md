@@ -1,4 +1,4 @@
-# 🧬 Pipeline de análisis Single-cell RNA-seq (Día 2)
+# 🧬 Pipeline de análisis Single-cell RNA-seq (Dia 2)
 
 Este repositorio contiene los flujos de trabajo prácticos para la descarga/construcción de referencias genómicas, alineamiento y cuantificación con **Cell Ranger**, eliminación de ruido ambiental con **CellBender** e importación de datos en **R (Seurat)**.
 
