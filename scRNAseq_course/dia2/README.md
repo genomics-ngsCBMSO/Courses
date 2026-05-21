@@ -1,11 +1,11 @@
-# 🧬 Pipeline de análisis Single-cell RNA-seq (Dia 2)
+# 🧬 Single-cell RNA-seq Analysis steps (Day 2)
 
-Este repositorio contiene los flujos de trabajo prácticos para la descarga/construcción de referencias genómicas, alineamiento y cuantificación con **Cell Ranger**, eliminación de ruido ambiental con **CellBender** e importación de datos en **R (Seurat)**.
+This repository contains the practical workflows for downloading/constructing genomic references, alignment and quantification with **Cell Ranger**, ambient RNA removal with **CellBender**, and data import into **R (Seurat)**.
 
-## 🛠️ Paso 1: Gestión de referencias genómicas
+## 🛠️ Step 1: Genomic reference management
 
-### Opción A: Descarga de Referencia oficial (Humano)
-Ideal para organismos modelo estándar. Descarga directa desde los servidores de 10x Genomics.
+### Option A: Official Reference download (Human)
+Ideal for standard model organisms. Direct download from 10x Genomics servers.
 
 ```bash
 # Crear y acceder al directorio de trabajo
@@ -19,8 +19,8 @@ wget "https://cf.10xgenomics.com/supp/cell-exp/refdata-gex-GRCh38-2024-A.tar.gz"
 tar -xzvf refdata-gex-GRCh38-2024-A.tar.gz
 ```
 
-### Opción B: Construcción de Referencia personalizada (`cellranger mkref`)
-Ejemplo práctico utilizando únicamente el cromosoma Y obtenido desde Ensembl (Release 114).
+### Option B: Custom Reference construction (`cellranger mkref`)
+Practical example using only chromosome Y obtained from Ensembl (Release 114).
 
 ```bash
 mkdir chrY_example
@@ -38,11 +38,11 @@ awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:up
 wget https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
 gzip -d Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
 mv Homo_sapiens.GRCh38.dna.chromosome.Y.fa chrY.fa
-awk '{if ($1 ~ />/){print $1} else {print $_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa #Quitamos todo lo que no sea ID de Secuencia
+awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa #Quitamos todo lo que no sea ID de Secuencia
 
 wget https://ftp.ensembl.org/pub/release-114/gtf/homo_sapiens/Homo_sapiens.GRCh38.114.chr.gtf.gz
 gzip -d Homo_sapiens.GRCh38.114.chr.gtf.gz
-awk '$1 ~ /^#/ {print $0;next} {if ($1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf #Quitamos todo lo que no sea del chrY
+awk '\$1 ~ /^#/ {print \$0;next} {if (\$1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf #Quitamos todo lo que no sea del chrY
 
 # 3. Indexar referencia con Cell Ranger
 cellranger mkref --genome chrY --fasta chrY.fa --genes chrY.gtf
@@ -50,9 +50,9 @@ cellranger mkref --genome chrY --fasta chrY.fa --genes chrY.gtf
 
 ---
 
-## 🚀 Paso 2: Alineamiento y Cuantificación (`cellranger count`)
+## 🚀 Step 2: Alignment and Quantification (`cellranger count`)
 
-Mapeo de lecturas FASTQ, asignación de códigos de barras (Cell Barcodes), conteo de UMIs y generación de matrices de expresión digital.
+Mapping of FASTQ reads, cell barcode assignment, UMI counting, and digital expression matrix generation.
 
 ```bash
 mkdir cellranger
@@ -73,9 +73,9 @@ cellranger count --id=PBMC \
 
 ---
 
-## 🧼 Paso 3: Corrección de ARN ambiental (`cellbender`)
+## 🧼 Step 3: Ambient RNA correction (`cellbender`)
 
-Aplicación de un modelo de aprendizaje profundo para eliminar background, contaminación por transcriptoma libre y falsas gotas positivas (*empty droplets*).
+Application of a deep learning model to eliminate background, free-transcriptome contamination, and false-positive droplets (*empty droplets*).
 
 ```bash
 mkdir cellbender
@@ -87,7 +87,7 @@ cellbender remove-background \
            --output raw_feature_bc_matrix_cellbender.h5
 ```
 
-Como el resultado anterior sigue la tendencia inicial de entrenamiento pero sufre grandes fluctuaciones y una caída drástica al final y además no predice bien el número de células, aplicaremos un --learning-rate menor y añadiremos en comando: --expected-cells
+As the previous result follows the initial training trend but suffers from large fluctuations and a drastic drop at the end, and furthermore does not predict the cell number well, we will apply a smaller --learning-rate and add the command: --expected-cells
 
 ```bash
 # Ejecutar cellbender cambiando parámetros
@@ -97,15 +97,11 @@ cellbender remove-background --input raw_feature_bc_matrix.h5   --expected-cells
 
 ```
 
-
-
-
 ---
 
-## 📊 Paso 4: Carga y análisis de datos en R (`Seurat`)
+## 📊 Step 4: Data loading and analysis in R (`Seurat`)
 
-Flujo final para importar las matrices procesadas dentro de R e inicializar el objeto de análisis.
-
+Final workflow to import the processed matrices into R and initialize the analysis object.
 
 ```R
 # Cargar librería analítica
