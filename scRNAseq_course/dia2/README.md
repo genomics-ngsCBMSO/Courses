@@ -1,10 +1,10 @@
-# 🧬 Single-cell RNA-seq Analysis steps (Day 2)
+# 🧬 Single-cell RNA-seq analysis (Day 2)
 
 This repository contains the practical workflows for downloading/constructing genomic references, alignment and quantification with **Cell Ranger**, ambient RNA removal with **CellBender**, and data import into **R (Seurat)**.
 
 ## 🛠️ Step 1: Genomic reference management
 
-### Option A: Official Reference download (Human)
+### Option A: Official reference download (Human)
 Ideal for standard model organisms. Direct download from 10x Genomics servers.
 
 ```bash
@@ -19,7 +19,7 @@ wget "https://cf.10xgenomics.com/supp/cell-exp/refdata-gex-GRCh38-2024-A.tar.gz"
 tar -xzvf refdata-gex-GRCh38-2024-A.tar.gz
 ```
 
-### Option B: Custom Reference construction (`cellranger mkref`)
+### Option B: Custom reference construction (`cellranger mkref`)
 Practical example using only chromosome Y obtained from Ensembl (Release 114).
 
 ```bash
