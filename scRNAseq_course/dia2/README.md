@@ -33,7 +33,7 @@ gzip -d Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
 mv Homo_sapiens.GRCh38.dna.chromosome.Y.fa chrY.fa
 
 # Clean sequence IDs and convert to uppercase for homogenization
-awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa #Remove everything that is not a Sequence ID
+awk '{if ($1 ~ />/){print $1} else {print}}' chrY.fa | tr '[:lower:]' '[:upper:]'  > chrY_mod.fa
 
 # 2. Download GTF and filtering (annotation)
 wget https://ftp.ensembl.org/pub/release-114/gtf/homo_sapiens/Homo_sapiens.GRCh38.114.chr.gtf.gz
@@ -41,7 +41,7 @@ gzip -d Homo_sapiens.GRCh38.114.chr.gtf.gz
 awk '$1 ~ /^#/ {print $0;next} {if ($1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf #Remove everything that is not Y chromosome
 
 # 3. Create reference with Cell Ranger
-cellranger mkref --genome chrY --fasta chrY.fa --genes chrY.gtf
+cellranger mkref --genome chrY --fasta chrY_mod.fa --genes chrY.gtf
 ```
 
 ---
