@@ -53,6 +53,36 @@ rowData(cds) #metadata associated with genes
 colData(cds) #metadata associated with cells
 ```
 
+## 0PTIONAL: EXAMPLE SEURAT TO MONOCLE3
+
+If we want to work with an already analyzed Seurat dataset, we can import the clusters and reductions to the monocle object
+
+```r
+# 1. Get data from Seurat & create el CDS object
+expression_matrix <- GetAssayData(seu, assay = "RNA", slot = "counts")
+cell_metadata <- seu@meta.data
+gene_annotation <- data.frame(gene_short_name = rownames(expression_matrix), 
+                              row.names = rownames(expression_matrix))
+
+cds <- new_cell_data_set(expression_matrix,
+                         cell_metadata = cell_metadata,
+                         gene_metadata = gene_annotation)
+
+# 2. Transfer UMAP to Monocle 3
+reducedDims(cds)[["UMAP"]] <- Embeddings(seu, reduction = "umap")
+
+# 3. Transfer Clusters to Monocle3
+cds@clusters[["UMAP"]][["clusters"]] <- Idents(seu)
+
+# 4. Create Partitions
+names_cells <- rownames(seu@meta.data)
+partitions <- factor(rep(1, length(names_cells)), levels = "1")
+names(partitions) <- names_cells
+cds@clusters[["UMAP"]][["partitions"]] <- partitions
+
+#We can continue here straight to the Section 2. Trajectory inference
+```
+
 ## 1. Dimensionality reduction and clustering
 
 Trajectory analysis begins by organizing cells according to transcriptional similarity.
