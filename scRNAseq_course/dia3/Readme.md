@@ -188,3 +188,83 @@ seu <- subset(seu, outliers == "KEEP")
 ```R
 saveRDS(seu, "seurat_filtered.rds")
 ```
+
+## ⚙️ Normalization and dimensionality reduction
+
+### Load libraries and set seed
+
+```R
+library(Seurat)
+
+set.seed(1234) # ensures reproducibility of results
+```
+
+### Load Seurat object (after filtering)
+
+```R
+seu <- readRDS("seurat_filtered.rds")
+```
+
+### Normalization (SCTransform)
+
+```R
+# Classic workflow (alternative)
+# seu <- NormalizeData(seu)
+# seu <- FindVariableFeatures(seu)
+# seu <- ScaleData(seu)
+
+# SCTransform workflow (recommended)
+seu <- SCTransform(seu, return.only.var.genes = FALSE)
+```
+
+### PCA (Principal Component Analysis)
+
+```R
+seu <- RunPCA(seu)
+
+# Visualize PCA
+DimPlot(seu, pt.size = 1.5)
+
+# Selecting the number of PCs
+## 1. Elbow plot (visual method)
+ElbowPlot(seu)
+ElbowPlot(seu, ndims = 50)
+
+
+# 2. Variance-based approach
+pct <- seu[["pca"]]@stdev^2 / sum(seu[["pca"]]@stdev^2) * 100
+cumu <- cumsum(pct)
+
+co1 <- which(cumu > 90)[1]        # number of PCs explaining 90% variance
+co2 <- sort(which((pct[1:length(pct)-1] - pct[2:length(pct)]) > 0.1),
+            decreasing = TRUE)[1] + 1
+
+co1
+co2
+
+pcs <- min(co1, co2)
+pcs
+```
+
+### UMAP and t-SNE
+
+```R
+# UMAP
+seu <- RunUMAP(seu, dims = 1:pcs)
+
+jpeg("UMAP.jpeg", units = "in", height = 10, width = 12, res = 300)
+DimPlot(seu, pt.size = 1.5)
+dev.off()
+
+# t-SNE
+seu <- RunTSNE(seu, dims = 1:pcs)
+
+jpeg("t-SNE.jpeg", units = "in", height = 10, width = 12, res = 300)
+DimPlot(seu, pt.size = 1.5, reduction = "tsne")
+dev.off()
+```
+
+### Save results
+```R
+saveRDS(seu, "seurat_umap.rds")
+```
