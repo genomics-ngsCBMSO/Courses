@@ -2,7 +2,7 @@
 
 This repository contains the practical workflows for doublet detection, low-quality cell filtering, normalization, and dimensionality reduction.
 
-## Doublet Detection
+## 🔍  Doublet Detection
 
 ### Load libraries and set seed
 
@@ -70,4 +70,121 @@ seu <- subset(seu, doublet == "singlet")
 ### Save results
 ```R
 saveRDS(seu, "seurat_nodoub.rds")
+```
+
+## 🧹 Low-quality cell filtering
+
+### Load libraries and set seed
+
+```R
+library(Seurat)
+library(scater)
+
+set.seed(1234) # ensures reproducibility of results
+```
+
+### Load Seurat object (after doublet removal)
+
+```R
+seu <- readRDS("seurat_nodoub.rds")
+```
+
+### Quality control metrics
+
+```R
+# Inspect metadata
+head(seu)
+
+# Calculate mitochondrial gene percentage
+sum(grepl("^MT-", rownames(seu)))  # how many genes match the MT- pattern
+seu$percent.mt <- PercentageFeatureSet(seu, pattern = "^MT-")
+```
+
+### Visualize QC metrics
+
+```R
+jpeg("ViolinPlot_quality.jpeg", units = "in", height = 10, width = 10, res = 300)
+VlnPlot(seu, features = c("nCount_RNA", "nFeature_RNA", "percent.mt"))
+dev.off()
+```
+
+### Log-transformed metrics
+
+```R
+seu$log10_nCount <- log10(seu$nCount_RNA)
+seu$log10_nFeature <- log10(seu$nFeature_RNA)
+
+jpeg("ViolinPlot_quality_log10.jpeg", units = "in", height = 10, width = 10, res = 300)
+VlnPlot(seu, features = c("log10_nCount", "log10_nFeature", "percent.mt"))
+dev.off()
+```
+
+### Detect outliers
+
+```R
+seu$nCount_outliers <- isOutlier(seu$nCount_RNA, nmads = 5)
+seu$nFeature_outliers <- isOutlier(seu$nFeature_RNA, nmads = 5)
+seu$mt_outliers <- isOutlier(seu$percent.mt, nmads = 5, type = "higher")
+
+seu$outliers <- "KEEP"
+seu$outliers[seu$nCount_outliers == TRUE |
+             seu$nFeature_outliers == TRUE |
+             seu$mt_outliers == TRUE] <- "FILTER" # Cells outside normal ranges are marked as FILTER
+```
+
+
+### Visualize outliers
+
+```R
+p1 <- FeatureScatter(seu, group.by = "outliers",
+                     feature1 = "nCount_RNA", feature2 = "percent.mt",
+                     cols = c("darkred", "darkblue"))
+
+p2 <- FeatureScatter(seu, group.by = "outliers",
+                     feature1 = "nFeature_RNA", feature2 = "percent.mt",
+                     cols = c("darkred", "darkblue"))
+
+p3 <- FeatureScatter(seu, group.by = "outliers",
+                     feature1 = "nCount_RNA", feature2 = "nFeature_RNA",
+                     cols = c("darkred", "darkblue"))
+
+jpeg("Scatter_outliers.jpeg", units = "in", height = 12, width = 15, res = 300)
+p1 + p2 + p3
+dev.off()
+```
+
+
+### Alternative visualization (ggplot2)
+
+```R
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+# Extract data
+df <- FetchData(seu, vars = c("nCount_RNA", "nFeature_RNA", "percent.mt", "outliers"))
+
+# Convert to long format
+df_long <- df %>%
+  pivot_longer(cols = c(nCount_RNA, nFeature_RNA, percent.mt),
+               names_to = "feature",
+               values_to = "value")
+
+# Plot
+ggplot(df_long, aes(x = feature, y = value)) +
+  geom_violin(fill = "lightgrey") +
+  geom_jitter(aes(color = outliers), width = 0.2, size = 1) +
+  facet_wrap(~feature, scales = "free") +
+  theme_classic() +
+  scale_color_manual(values = c("KEEP" = "darkblue", "FILTER" = "darkred"))
+```
+
+### Filter low-quality cells
+```R
+seu <- subset(seu, outliers == "KEEP")
+```
+
+### Save results
+```R
+saveRDS(seu, "seurat_filtered.rds")
 ```
