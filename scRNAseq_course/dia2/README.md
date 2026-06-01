@@ -87,7 +87,6 @@ As the previous result follows the initial training trend but suffers from large
 
 ```bash
 # Cellbender changing parameters
-cellbender remove-background \
 cellbender remove-background --input raw_feature_bc_matrix.h5   --expected-cells 1221 y --learning-rate 0.000005 
 --output raw_feature_bc_matrix_cellbender_ECLR.h5
 
