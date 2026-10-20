@@ -54,6 +54,11 @@ mv ERR023195_2.fastq.gz > sensitive_2.fastq.gz
 
 mv ERR023197_1.fastq.gz > resistant_1.fastq.gz
 mv ERR023197_2.fastq.gz > resistant_2.fastq.gz
+
+gzip -d sensitive_1.fastq.gz
+gzip -d sensitive_2.fastq.gz
+gzip -d resistant_1.fastq.gz
+gzip -d resistant_2.fastq.gz
 ```
 
 ### 1.2. Reference genome
@@ -105,9 +110,9 @@ This step maps each read to its most likely position in the reference genome usi
 
 ```bash
 # Sensitive strain
-bwa mem mtu.fasta sensitive_1.fastq.gz sensitive_2.fastq.gz > sensitive.sam
+bwa mem mtu.fasta sensitive_1.fastq sensitive_2.fastq > sensitive.sam
 # Resistant strain
-bwa mem mtu.fasta resistant_1.fastq.gz resistant_2.fastq.gz > resistant.sam
+bwa mem mtu.fasta resistant_1.fastq resistant_2.fastq > resistant.sam
 ```
 
 To simplify the analysis of multiple samples, repetitive commands can be automated using a **for loop** in bash. This allows the same alignment and post-processing steps to be applied sequentially to each sample, reducing manual repetition and minimizing the risk of errors.
@@ -115,7 +120,7 @@ To simplify the analysis of multiple samples, repetitive commands can be automat
 ```bash
 for sample in sensitive resistant
 do
-  bwa mem mtu.fasta ${sample}_1.fastq.gz ${sample}_2.fastq.gz > ${sample}.sam
+  bwa mem mtu.fasta ${sample}_1.fastq ${sample}_2.fastq > ${sample}.sam
 done
 ```
 
