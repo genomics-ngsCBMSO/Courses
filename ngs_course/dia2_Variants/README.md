@@ -203,7 +203,7 @@ The raw variants detected may include false positives, caused by sequencing erro
 This filtering step is performed using **vcffilter**, which reads the VCF file and retains only the variants that pass the defined thresholds.
 
 ```bash
-for sample in ERR023195 ERR023197
+for sample in sensitive resistant
 do
     vcffilter -f "DP > 9 & QUAL > 10" ${sample}.vcf > ${sample}_filtered.vcf
 done
