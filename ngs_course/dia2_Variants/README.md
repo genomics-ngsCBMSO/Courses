@@ -231,7 +231,7 @@ SnpEff compares the filtered variants against the annotation database of the ref
 ```bash
 #Check the proper reference in snpEff database and donwloaded if necessary
 snpEff databases | grep "Mycobacterium_tuberculosis_h37rv"
-snpeff download Mycobacterium_tuberculosis_h37rv
+snpEff download Mycobacterium_tuberculosis_h37rv
 
 #Annotate the filtered variants
 for sample in sensitive resistant
