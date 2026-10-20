@@ -236,7 +236,7 @@ snpEff download Mycobacterium_tuberculosis_h37rv
 #Annotate the filtered variants
 for sample in sensitive resistant
 do
-  snpEff Mycobacterium_tuberculosis_h37rv ${sample}_filtered.vcf > ${sample}_annotated.vcf
+  snpEff Mycobacterium_tuberculosis_h37rv ${sample}_filtered.vcf -s ${sample}.html > ${sample}_annotated.vcf
 done
 ```
 The annotation is added to the VCF file, producing a new annotated VCF that includes information such as:
