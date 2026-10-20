@@ -205,7 +205,8 @@ This filtering step is performed using **vcffilter**, which reads the VCF file a
 ```bash
 for sample in sensitive resistant
 do
-    vcffilter -f "DP > 9 & QUAL > 10" ${sample}.vcf > ${sample}_filtered.vcf
+    #vcffilter -f "DP > 9 & QUAL > 10" ${sample}.vcf > ${sample}_filtered.vcf
+    biopet-vcffilter --minSampleDepth 10 --minQualScore 10 -I ${sample}.vcf -o ${sample}_filtered.vcf
 done
 ```
 
