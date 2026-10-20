@@ -234,7 +234,7 @@ snpEff databases | grep "Mycobacterium_tuberculosis_h37rv"
 snpeff download Mycobacterium_tuberculosis_h37rv
 
 #Annotate the filtered variants
-for sample in ERR023195 ERR023197
+for sample in sensitive resistant
 do
   snpEff Mycobacterium_tuberculosis_h37rv ${sample}_filtered.vcf > ${sample}_annotated.vcf
 done
