@@ -160,7 +160,7 @@ for sample in sensitive resistant
 do
   java -jar /home/curso/Software/picard.jar MarkDuplicates I=${sample}_sorted.bam O=${sample}_dup.bam METRICS_FILE=${sample}_metrics.txt
   java -jar /home/curso/Software/picard.jar AddOrReplaceReadGroups I=${sample}_dup.bam O=${sample]_readgroup.bam RGID=1 RGSM=1 RGLB=lib1 RGPU=unit1 RGPL=illumina
-  picard BuildBamIndex I=${sample}_readgroup.bam
+  java -jar /home/curso/Software/picard.jar BuildBamIndex I=${sample}_readgroup.bam
 done
 ```
 
