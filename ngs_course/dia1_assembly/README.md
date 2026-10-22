@@ -140,5 +140,5 @@ Genome annotation was performed using Prokka, which predicts coding sequences (C
 
 ```bash
 conda activate Dia1-Prokka1
-prokka --kingdom Bacteria --genus Escherichia --species coli --gcode 11 --usegenus --prefix ecoli ONT_assembly.fasta
+prokka --kingdom Bacteria --genus Escherichia --species coli --gcode 11 --usegenus --prefix ecoli ONT_ecoli.fasta
 ```

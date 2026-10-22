@@ -27,25 +27,21 @@ mkdir chrY_example
 cd chrY_example
 
 # 1. Download Y chromosome reference (sequence)
-wget https://ensembl.org
+wget https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
+
 gzip -d Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
 mv Homo_sapiens.GRCh38.dna.chromosome.Y.fa chrY.fa
 
 # Clean sequence IDs and convert to uppercase for homogenization
-awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa
+awk '{if ($1 ~ />/){print $1} else {print}}' chrY.fa | tr '[:lower:]' '[:upper:]'  > chrY_mod.fa
 
 # 2. Download GTF and filtering (annotation)
-wget https://ftp.ensembl.org/pub/release-114/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
-gzip -d Homo_sapiens.GRCh38.dna.chromosome.Y.fa.gz
-mv Homo_sapiens.GRCh38.dna.chromosome.Y.fa chrY.fa
-awk '{if (\$1 ~ />/){print \(1} else {print\)_}}' chrY.fa | tr '[:lower:]' '[:upper:]' > chrY_mod.fa #Remove everything that is not a Sequence ID
-
 wget https://ftp.ensembl.org/pub/release-114/gtf/homo_sapiens/Homo_sapiens.GRCh38.114.chr.gtf.gz
 gzip -d Homo_sapiens.GRCh38.114.chr.gtf.gz
-awk '\$1 ~ /^#/ {print \$0;next} {if (\$1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf #Remove everything that is not Y chromosome
+awk '$1 ~ /^#/ {print $0;next} {if ($1 == "Y") print}' Homo_sapiens.GRCh38.114.chr.gtf > chrY.gtf #Remove everything that is not Y chromosome
 
 # 3. Create reference with Cell Ranger
-cellranger mkref --genome chrY --fasta chrY.fa --genes chrY.gtf
+cellranger mkref --genome chrY --fasta chrY_mod.fa --genes chrY.gtf
 ```
 
 ---
@@ -91,7 +87,6 @@ As the previous result follows the initial training trend but suffers from large
 
 ```bash
 # Cellbender changing parameters
-cellbender remove-background \
 cellbender remove-background --input raw_feature_bc_matrix.h5   --expected-cells 1221 y --learning-rate 0.000005 
 --output raw_feature_bc_matrix_cellbender_ECLR.h5
 

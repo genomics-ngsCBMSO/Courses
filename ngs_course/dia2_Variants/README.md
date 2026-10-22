@@ -54,6 +54,11 @@ mv ERR023195_2.fastq.gz > sensitive_2.fastq.gz
 
 mv ERR023197_1.fastq.gz > resistant_1.fastq.gz
 mv ERR023197_2.fastq.gz > resistant_2.fastq.gz
+
+gzip -d sensitive_1.fastq.gz
+gzip -d sensitive_2.fastq.gz
+gzip -d resistant_1.fastq.gz
+gzip -d resistant_2.fastq.gz
 ```
 
 ### 1.2. Reference genome
@@ -105,9 +110,9 @@ This step maps each read to its most likely position in the reference genome usi
 
 ```bash
 # Sensitive strain
-bwa mem mtu.fasta sensitive_1.fastq.gz sensitive_2.fastq.gz > sensitive.sam
+bwa mem mtu.fasta sensitive_1.fastq sensitive_2.fastq > sensitive.sam
 # Resistant strain
-bwa mem mtu.fasta resistant_1.fastq.gz resistant_2.fastq.gz > resistant.sam
+bwa mem mtu.fasta resistant_1.fastq resistant_2.fastq > resistant.sam
 ```
 
 To simplify the analysis of multiple samples, repetitive commands can be automated using a **for loop** in bash. This allows the same alignment and post-processing steps to be applied sequentially to each sample, reducing manual repetition and minimizing the risk of errors.
@@ -115,7 +120,7 @@ To simplify the analysis of multiple samples, repetitive commands can be automat
 ```bash
 for sample in sensitive resistant
 do
-  bwa mem mtu.fasta ${sample}_1.fastq.gz ${sample}_2.fastq.gz > ${sample}.sam
+  bwa mem mtu.fasta ${sample}_1.fastq ${sample}_2.fastq > ${sample}.sam
 done
 ```
 
@@ -158,9 +163,9 @@ Before calling variants, alignments are processed to improve accuracy. All the s
 ```bash
 for sample in sensitive resistant
 do
-  picard MarkDuplicates I=${sample}_sorted.bam O=${sample}_dup.bam METRICS_FILE=${sample}_metrics.txt
-  picard AddOrReplaceReadGroups I=${sample}_dup.bam O=${sample]_readgroup.bam RGID=1 RGSM=1 RGLB=lib1 RGPU=unit1 RGPL=illumina
-  picard BuildBamIndex I=${sample}_readgroup.bam
+  java -jar /home/curso/Software/picard.jar MarkDuplicates I=${sample}_sorted.bam O=${sample}_dup.bam METRICS_FILE=${sample}_metrics.txt
+  java -jar /home/curso/Software/picard.jar AddOrReplaceReadGroups I=${sample}_dup.bam O=${sample}_readgroup.bam RGID=1 RGSM=1 RGLB=lib1 RGPU=unit1 RGPL=illumina
+  java -jar /home/curso/Software/picard.jar BuildBamIndex I=${sample}_readgroup.bam
 done
 ```
 
@@ -203,9 +208,10 @@ The raw variants detected may include false positives, caused by sequencing erro
 This filtering step is performed using **vcffilter**, which reads the VCF file and retains only the variants that pass the defined thresholds.
 
 ```bash
-for sample in ERR023195 ERR023197
+for sample in sensitive resistant
 do
-    vcffilter -f "DP > 9 & QUAL > 10" ${sample}.vcf > ${sample}_filtered.vcf
+    #vcffilter -f "DP > 9 & QUAL > 10" ${sample}.vcf > ${sample}_filtered.vcf
+    biopet-vcffilter --minSampleDepth 10 --minQualScore 10 -I ${sample}.vcf -o ${sample}_filtered.vcf
 done
 ```
 
@@ -225,12 +231,12 @@ SnpEff compares the filtered variants against the annotation database of the ref
 ```bash
 #Check the proper reference in snpEff database and donwloaded if necessary
 snpEff databases | grep "Mycobacterium_tuberculosis_h37rv"
-snpeff download Mycobacterium_tuberculosis_h37rv
+snpEff download Mycobacterium_tuberculosis_h37rv
 
 #Annotate the filtered variants
-for sample in ERR023195 ERR023197
+for sample in sensitive resistant
 do
-  snpEff Mycobacterium_tuberculosis_h37rv ${sample}_filtered.vcf > ${sample}_annotated.vcf
+  snpEff Mycobacterium_tuberculosis_h37rv ${sample}_filtered.vcf -s ${sample}.html > ${sample}_annotated.vcf
 done
 ```
 The annotation is added to the VCF file, producing a new annotated VCF that includes information such as:
