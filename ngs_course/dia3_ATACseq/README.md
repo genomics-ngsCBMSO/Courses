@@ -142,6 +142,14 @@ ln -s /home/curso/Software/dia3/reference/* .
 
 Analyze the quality of the raw sequencing reads using `FastQC`
 
+**Per base sequence content flag:** Some types of libraries naturally produce biased sequence composition, particularly at the beginning of reads. This is commonly observed in libraries prepared using random hexamer priming or transposase-based fragmentation (tagmentation).
+
+You can read more about this topic in the following resources:
+
+- **[FASTQC documentation: Per Base Sequence Content](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/4%20Per%20Base%20Sequence%20Content.html)**
+- **[Tagmentation bias](https://pmc.ncbi.nlm.nih.gov/articles/PMC8224930/)**
+- **[Random hexamer priming bias](https://pmc.ncbi.nlm.nih.gov/articles/PMC2896536/#B2)**
+
 ```bash
 # Create a folder to store QC analysis reports
 mkdir /home/curso/dia3/raw_fastqc
