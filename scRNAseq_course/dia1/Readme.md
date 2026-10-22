@@ -98,6 +98,26 @@ done
 
 ## Assess read quality
 
+**Phred score**
+
+Measurement of the probability of an error in nucleotide basecalling in DNA sequencing. Calculated as follow:
+
+    Q = - 10 x log10(P) 
+
+
+P is the probability that a base has ben incorrectly read.
+
+| Phred score (Q) | Error probability (P) | Read precision |
+| ---	| ---	| ---	|
+| Q10	| 1 en 10 | 90% |
+| Q20	| 1 en 100 | 99% |
+| Q30	| 1 en 1,000 | 99.9% |
+| Q40	| 1 en 10,000 | 99.99% |
+
+Q30 is the standard for sequencing data.
+
+In FASTQ files, to save space, phred scores are not store as integers, they are stored as ASCII characters. Phred+33 is the most common format used by multiple modern platforms such as Illumina. The quality character in the 4th line is calculated adding 33 to the numeric value. 
+
 Run `FASTQC` to assess reads quality
 
 ```bash
