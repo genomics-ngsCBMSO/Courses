@@ -96,53 +96,53 @@ Raw sequencing reads (FASTQ files) and sample/study metadata are available at EN
 - ENA browser website: https://www.ebi.ac.uk/ena/browser/home
 - ENA Study accession: **PRJNA998264**
 
-For the practice, 2e will use 2 samples by condition:
+For the practice, we will use 2 samples by condition:
 
 | SRA ID	| Condition |
 | ---   | --- |
-| SRR25411155   | RNAseq_4month_tet2_wt |
-| SRR25411155   | RNAseq_4month_tet2_wt |
-| SRR25411161   | RNAseq_4month_tet2_mut |
-| SRR25411166   | RNAseq_4month_tet2_mut |
+| SRR25411167   | RNAseq_4month_tet2_wt_rep1 |
+| SRR25411155   | RNAseq_4month_tet2_wt_rep2 |
+| SRR25411161   | RNAseq_4month_tet2_mut_rep1 |
+| SRR25411175   | RNAseq_4month_tet2_mut_rep2 |
 
 
 ### 1.1. Sequencing reads (FASTQ files)
 
-To save time, FASTQ files for these samples were downloaded. A subsampling of 4M reads per sample was perfomed to speed up the computing time in this practice. We will start working with the 4M-read subsampled FASTQ files.
+To save time, FASTQ files for these samples were downloaded. 
 
 ```bash
 # Download samples
 
-#wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/067/SRR25411167/SRR25411167.fastq.gz
-#wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/055/SRR25411155/SRR25411155.fastq.gz
-#wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/066/SRR25411166/SRR25411166.fastq.gz
-#wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/061/SRR25411161/SRR25411161.fastq.gz
+# wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/055/SRR25411155/SRR25411155.fastq.gz
+# wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/061/SRR25411161/SRR25411161.fastq.gz
+# wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/067/SRR25411167/SRR25411167.fastq.gz
+# wget -nc ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR254/075/SRR25411175/SRR25411175.fastq.gz
 
-# Subsample reads to 4 million
-#for file in *.fastq.gz  
-# do
-# gunzip ${file}
-# base_name=${file%%.fastq.gz}
-# seqtk sample -s100 ${base_name}.fastq 4000000 | gzip > ${base_name}.fastq.gz
-# done
-
-# Create a folder to store sequencing reads
-mkdir /home/curso/dia4/reads
+# Create a folder to store sequencing reads. Today, we will go further with the order of project data: each step will show an increasing number at the corresponding folder.
+# Input data will have "00" prefix. We will start with reads:
+mkdir /home/curso/dia4/00-reads
 
 # Create symbolic links to the FASTQ files
 cd /home/curso/dia4/reads
-ln -s /home/curso/Software/dia4/reads/*.fastq.gz .
+ln -s /home/curso/Software/dia4/00-reads/*.fastq.gz .
 ```
 ### 1.2. Reference genome
 
 We also need the nucleotide sequence (FASTA) and annotation (GTF) of the reference genome. 
 
 ```bash
-# Create a folder to store the reference genome sequence
-mkdir /home/curso/dia4/reference
+# Download reference
+# wget https://ftp.ensembl.org/pub/current/fasta/danio_rerio/dna/Danio_rerio.GRCz11.dna.primary_assembly.fa.gz
+# wget https://ftp.ensembl.org/pub/current/gtf/danio_rerio/Danio_rerio.GRCz11.116.gtf.gz
+
+# Decompress reference
+# gunzip ./*
+
+# Create a folder to store the reference genome sequence. As input, it will have "00" as prefix:
+mkdir /home/curso/dia4/00-reference
 
 # Create a symbolic link to the reference FASTA and index files
-cd /home/curso/dia4/reference
+cd /home/curso/dia4/00-reference
 ln -s /home/curso/Software/dia4/reference/* .
 
 ```
@@ -154,20 +154,21 @@ Analyze the quality of the raw sequencing reads using `FastQC`
 ```bash
 
 # Go to the reads directory
-cd /home/curso/dia4/reads
+cd /home/curso/dia4/00-reads
 
 # Make a folder for the QC analysis
 mkdir fastQC
 
 # Run fastQC
-fastqc *.fastq.gz -t 6 --outdir /home/curso/dia4/reads/fastQC
+fastqc *.fastq.gz -t 6 --outdir ./fastQC
 
 # Go to the raw_fastqc folder and generate an aggregated report
-cd /home/curso/dia4/reads/fastQC
+cd /home/curso/dia4/00-reads/fastQC
 /home/curso/miniconda3/bin/multiqc .
 ```
 
-Reads elicit good quality. No adapters are found. We can go on with the subsampled reads without further processing.
+Reads elicit good quality. No adapters are found. 
+All fastq files contain the same number of reads. In this study, 4M reads chunks from the original read files, with high quality and without adapters, were uploaded to the repository. We can go on with these reads without further processing.
 
 
 ## 3. Reads alignment to the reference genome
@@ -183,17 +184,17 @@ For the alignment we will need the sequence of the reference genome (FASTA) and 
 ### 3.1 Build Hisat2 index
 
 ```bash
-mkdir /home/curso/dia4/hisat2
-cd /home/curso/dia4/hisat2
+mkdir /home/curso/dia4/01-hisat2
+cd /home/curso/dia4/01-hisat2
 
-hisat2-build -p 8 ../reference/Danio_rerio.GRCz11.dna.primary_assembly.fa Drerio
+hisat2-build -p 8 ../00-reference/Danio_rerio.GRCz11.dna.primary_assembly.fa Drerio
 ```
 
 ### 3.2 Align reads with Hisat2
 
 After building the index, we can proceed with the alignment itself. To avoid the long code names in files that also lack any information, we will skip the common characters in SRR codes and call each read by their unique identifier, in this case, the last 2 numbers of the code. We will also feed the `for` loop with a text file that contains the sample IDs.
 
-Use a text editor to build a file named `samples.txt` containing the sample values for the loop: 61 66 67 55 in `/home/curso/dia4`. Then, run alignment:
+Use a text editor to build a file named `samples.txt` containing the sample values for the loop: 55 67 61 75 in `/home/curso/dia4`. Then, run alignment:
 
 ```bash
 # Map the reads to the reference genome
@@ -201,8 +202,8 @@ Use a text editor to build a file named `samples.txt` containing the sample valu
 for sample in `cat ../samples.txt`
 do
 	hisat2 -x Drerio -q -k 1  -p 24 \
-	  -U ../reads/SRR254111${sample}.fastq.gz \
-	  -S ${sample}.sam 2>> ${sample}_RF_summarymetrics.txt
+	  -U ../00-reads/SRR254111${sample}.fastq.gz \
+	  -S ${sample}.sam 2> ${sample}_RF_summarymetrics.txt
 	samtools view -S -b ${sample}.sam --threads 8 > ${sample}.bam
 	samtools sort ${sample}.bam -o ${sample}_sorted.bam --threads 8
 	samtools index ${sample}_sorted.bam
@@ -219,8 +220,8 @@ Only when we are not sure of the library type used for sequencing, we should che
 `gff2bed` command will transform the annotation file in GTF format to BED format:
 
 ```bash
-cd /home/curso/dia4/reference
-gff2bed < Danio_rerio.GRCz11.112.gtf > Danio_rerio.GRCz11.112.bed
+cd /home/curso/dia4/00-reference
+gff2bed < Danio_rerio.GRCz11.116.gtf > Danio_rerio.GRCz11.116.bed
 ```
 
 ### 4.2. Check strandness
@@ -239,8 +240,8 @@ Strandness will be checked just in one sample, assuming that all reads coming fr
 ```bash
 # Check strandness
 
-cd /home/curso/dia4/hisat2
-infer_experiment.py -r ../reference/Danio_rerio.GRCz11.112.bed -i 55_sorted.bam
+cd /home/curso/dia4/01-hisat2
+infer_experiment.py -r ../00-reference/Danio_rerio.GRCz11.116.bed -i 55_sorted.bam
 ```
 
 ## 5. Quantify gene expression
@@ -250,15 +251,15 @@ We will count the number of reads in each gene by summing up all reads that alig
 
 ```bash
 # Create a directory to store library QC plots and statistics
-mkdir /home/curso/dia4/counts
-cd /home/curso/dia4/counts
+mkdir /home/curso/dia4/02-counts
+cd /home/curso/dia4/02-counts
 
 # Count reads by gene
 for sample in `cat ../samples.txt`
 do
-	featureCounts -T 5 -t exon -g gene_id \
-		-a ../reference/Danio_rerio.GRCz11.112.gtf \
-		-o ${sample}_ftC.tsv ../hisat2/${sample}_sorted.bam 
+	featureCounts -T 8 -t exon -g gene_id \
+		-a ../00-reference/Danio_rerio.GRCz11.116.gtf \
+		-o ${sample}_ftC.tsv ../01-hisat2/${sample}_sorted.bam 
 done
 ```
 
@@ -275,12 +276,12 @@ We will format the `featureCounts` output to retain only the gene IDs and their 
 ```bash
 
 # Create a folder for differential expression analysis
-mkdir /home/curso/dia4/deseq2
+mkdir /home/curso/dia4/03-deseq2
 
 # Extract differential expression relevant information and store in a new file: ID in column1 and counts in column7
 for sample in `cat ../samples.txt`
 do
-	    awk -F'\t' '{print $1 "\t" $7}' ${sample}_ftC.tsv | tail -n+3 > ../deseq2/${sample}.tsv
+	    awk -F'\t' '{print $1 "\t" $7}' ${sample}_ftC.tsv | tail -n+3 > ../03-deseq2/${sample}.tsv
 done
 ```
 
@@ -289,17 +290,17 @@ done
 First, go to the deseq2 folder:
 
 ```bash
-cd /home/curso/dia4/deseq2
+cd /home/curso/dia4/03-deseq2
 ``` 
 
 Then, use a text editor to build a file named `config.tsv` containing the following information in a tab-separated format:
 
 | sample	| file | condition |
 | ---   | --- | --- |
-| 67   | 67.tsv | WT |
 | 55   | 55.tsv | WT |
+| 67   | 67.tsv | WT |
 | 61   | 61.tsv | Mutant |
-| 66   | 66.tsv | Mutant |
+| 75   | 75.tsv | Mutant |
 
 
 ### 6.3 Run differential expression analysis
@@ -316,7 +317,7 @@ Then, run DESeq2:
 
 ```bash
 # Make sure you are located in the differential expression analysis folder
-Rscript --vanilla deseq2.R –c config.txt –d org.Dr.eg.db
+Rscript --vanilla deseq2.R -c config.tsv -d org.Dr.eg.db
 ``` 
 
 ## 7. Functional enrichment analysis
@@ -328,11 +329,11 @@ As GSEA ranking parameter, we will use the "stat" column from DESeq2 analysis, c
 ```bash
 
 # Create an go to a folder to store input and results
-mkdir /home/curso/dia4/gsea
-cd /home/curso/dia4/gsea
+mkdir /home/curso/dia4/04-gsea
+cd /home/curso/dia4/04-gsea
 
 # Parse DESeq2 output to keep the gene ID and the "stat" column
-cut -f1,7 ../deseq2/deseq2_all_Mutant_vs_WT.tsv > Mutant_WT_all.txt
+cut -f1,7 ../03-deseq2/deseq2_all_Mutant_vs_WT.tsv > Mutant_WT_all.txt
 # Add a column name to gene ID in a text editor: "ID"
 
 # Run GSEA using GO terms as reference
