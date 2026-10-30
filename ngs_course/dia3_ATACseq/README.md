@@ -1,8 +1,7 @@
 # DIA 3. ATAC-seq
 
 **Servicio de Análisis Biocomputacional (SABio); CBM** \
-**Edition**: April, 2026 \
-**Last update**: 08/04/2026
+**Last update**: 29/10/2026
 
 All raw sequencing data used in this pipeline, as well as all intermediate and final files generated during processing, are available at the following link: **https://saco.csic.es/s/YPimHNWAxjtq9WY**
 
@@ -249,13 +248,13 @@ for file in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343
 do
 	java -jar /home/curso/Software/picard.jar MarkDuplicates \
         I=/home/curso/dia3/alignment/${file}_1M_sorted.bam \
-        O=${file}_1M_sorted_dedup.bam \
-        M=${file}_markdup_metrics.txt \
+        O=${file}_1M_sorted_rmDup.bam \
+        M=${file}.MarkDuplicates.txt \
         REMOVE_DUPLICATES=true
 	
-    samtools index ${file}_1M_sorted_dedup.bam
+    samtools index ${file}_1M_sorted_rmDup.bam
 	
-    samtools flagstat ${file}_1M_sorted_dedup.bam > ${file}_1M_sorted_dedup_map_stats.txt
+    samtools flagstat ${file}_1M_sorted_rmDup.bam > ${file}_1M_sorted_rmDup.flagstat.txt
 done
 ```
 
@@ -290,7 +289,7 @@ ln -s /home/curso/Software/dia3/alignment_1M/combined_blacklist.bed .
 # Filter out reads that map to blacklisted regions
 for file in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 
 do
-	bedtools intersect -v -a ../alignment_wo_dup/${file}_1M_sorted_dedup.bam -b combined_blacklist.bed > ${file}_1M_flt.bam
+	bedtools intersect -v -a ../alignment_wo_dup/${file}_1M_sorted_rmDup.bam -b combined_blacklist.bed > ${file}_1M_flt.bam
 	samtools index ${file}_1M_flt.bam
 done
 ```
@@ -304,18 +303,18 @@ For this step we will use tools from `Picard` and `deeptools`
 ```bash
 # Load conda environment
 conda deactivate
-conda activate Dia3_R_2025
+conda activate Dia3-R4.4
 ```
 
 ```bash
 # Create a directory to store library QC plots and statistics
-mkdir dia3/library_QC
+mkdir /home/curso/dia3/library_QC
 cd /home/curso/dia3/library_QC
 
 # Calculate fragment size distribution and generate an histogram
 for file in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194
 do
-java -jar /home/curso/Software/picard.jar CollectInsertSizeMetrics -I /home/curso/dia3/alignment_wo_blacklist/${file}_1M_flt.bam -O ${file}.fraglen.stats -H ${file}.fraglen.pdf -M 0.5
+java -jar /home/curso/Software/picard.jar CollectInsertSizeMetrics -I /home/curso/dia3/alignment_wo_blacklist/${file}_1M_flt.bam -O ${file}.fraglen.stats -H ${file}.fraglen.pdf
 done
 ```
 
@@ -373,11 +372,11 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 #   --sortRegions no \
 #   --skipZeros
 
-# # Make a profile plot out of the coverage matrix 
-# plotProfile -m TSSmeta.gz \
-#     -out TSS_prof.png \
-#     --plotTitle "TSS-centered enrichment profile" \
-#     --perGroup
+# Make a profile plot out of the coverage matrix 
+plotProfile -m TSSmeta.gz \
+    -out TSS_prof.png \
+    --plotTitle "TSS-centered enrichment profile" \
+    --perGroup
 ```
 
 ### 5.5. Peaks correlation profile
@@ -386,9 +385,7 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 # # Summarize enrichment from multiple BigWig files in an unique matrix
 # multiBigwigSummary bins \
 # 	--bwfiles *.bw \
-# 	--outFileName coverage_matrixAll_NORM.npz \
-#   --binSize 10000 \
-#   -p 6 
+# 	--outFileName coverage_matrixAll_NORM.npz
 
 # # Generate a PCA plot
 # plotPCA -in coverage_matrixAll_NORM.npz \
@@ -399,14 +396,14 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 # 	--transpose
 
 # Generate a correlation heatmap
-# plotCorrelation -in coverage_matrixAll_NORM.npz \
-# 	--corMethod pearson \
-#     --labels SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 \
-#     --plotTitle "Correlation Heatmap" \
-# 	--whatToPlot heatmap \
-#     --outFileCorMatrix correlation_matrixNorm.tab \
-# 	--plotFile correlation_heatmapNorm.png \
-#     --removeOutliers
+plotCorrelation -in coverage_matrixAll_NORM.npz \
+	--corMethod pearson \
+    --labels SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 \
+    --plotTitle "Correlation Heatmap" \
+	--whatToPlot heatmap \
+    --outFileCorMatrix correlation_matrixNorm.tab \
+	--plotFile correlation_heatmapNorm.png \
+    --removeOutliers
 
 ```
 
@@ -420,10 +417,6 @@ These aligments have been filtered for duplicates and blacklisted regions.
 
 
 ```bash
-# Load conda environment
-conda deactivate
-conda activate Dia3
-
 # Create a folder for filtered alignment with 10M reads
 mkdir dia3/alignment_10M_flt
 
@@ -522,7 +515,7 @@ cd /home/curso/dia3/peak_calling_10M
 ```bash
 # Load conda environment
 conda deactivate
-conda activate Dia3_R_2025
+conda activate Dia3-R4.4
 
 # Create a folder to store DARs analysis result
 mkdir /home/curso/dia3/DARs
@@ -541,6 +534,8 @@ Rscript --vanilla /home/curso/Software/dia3/diffbind_deseq.R \
 
 Now that we have identified the peaks showing differential accesibility between conditions, lets annotate the genomic region they overlap (promoter, introns, ...). For annotation we will use `Homer`.
 
+Note that the `diffbind_deseq.R` script performs peak annotation internally. However, it is not currently configured to export these annotations as a separate results table. Therefore, we will perform an additional annotation step to obtain a table containing the genomic annotations for each DAR.
+
 ```bash
 # Load conda environment
 conda deactivate
@@ -548,11 +543,12 @@ conda activate Dia3-Homer
 
 # Parse DiffBind output file with DARs
 # keep columns of interest (chr, start, end, peak_name, FC, p-val, closest gene ENSEMBL ID and gene name)
-awk -F',' 'NR>1 {gsub(/"/,"",$0); print $2, $3, $4, $13, $10, $11, $14, $22}' OFS='\t' DiffBind.res.MDX-WT.FDR.05.csv > DiffBind.res.MDX-WT.FDR.05.tsv
+
+awk -F'\t' 'NR>1 {print $1, $2, $3, $12, $9, $10, $13, $21}' OFS='\t' DiffBind.res.MDX-WT.FDR.05.tsv > DiffBind.res.MDX-WT.FDR.05_forHomer.tsv
 
 
 # Annotate peaks to the closest
-annotatePeaks.pl DiffBind.res.MDX-WT.FDR.05.tsv /home/curso/dia3/reference/mm39_107.fa -gid -gtf /home/curso/dia3/reference/Mus_musculus.GRCm39.107.chr.gtf -cpu 6 > DARs_MDX-WT_annotated.bed
+annotatePeaks.pl DiffBind.res.MDX-WT.FDR.05_forHomer.tsv /home/curso/dia3/reference/mm39_107.fa -gid -gtf /home/curso/dia3/reference/Mus_musculus.GRCm39.107.chr.gtf -cpu 6 > DARs_MDX-WT_annotated.bed
 
 # You can take a look to the annotated peaks output file
 less -S DARs_MDX-WT_annotated.bed # q<ENTER> to exit
@@ -563,18 +559,17 @@ less -S DARs_MDX-WT_annotated.bed # q<ENTER> to exit
 
 Let's find out which motifs are different in promoters with differential accesibility.
 
+*Note*: it would probably be more interesting to distinguish between positively differential peaks (accessible in the KO but not in the WT) and negatively differential peaks (accessible in the WT but not in the KO). For simplicity, however, we will consider all peaks located within promoter regions, regardless of their differential accessibility status.
+
 ```bash
 mkdir /home/curso/dia3/DARs_motifs
 cd /home/curso/dia3/DARs_motifs
 
-# Copy the table with all Differential Accessible Regions annotated according to the genomic region 
-cp /home/curso/dia3/DARs/DARs_MDX-WT_annotated.bed .
-
 # Take only differentially accesible regions located in promoters
-grep promoter-TSS DARs_MDX-WT_annotated.bed > DARs_MDX-WT_annotated_promoters.bed
+grep promoter-TSS /home/curso/dia3/DARs/DARs_MDX-WT_annotated.bed > DARs_MDX-WT_annotated_promoters.bed
 
 # Find motifs enriched in this regions compared to the rest of promoters in the genome
-findMotifsGenome.pl DARs_MDX-WT_annotated_promoters.bed /home/curso/dia3/reference/mm39_107.fa homer_motifs_PROMOTER_DARs -p 12 -mset vertebrates 
+findMotifsGenome.pl DARs_MDX-WT_annotated_promoters.bed /home/curso/dia3/reference/mm39_107.fa homer_motifs_PROMOTER_DARs -p 6 -mset vertebrates 
 ```
 
 ## 10. Pathway enrichment analysis
@@ -594,6 +589,8 @@ cd /home/curso/dia3/pathway
 
 # Parse DiffBind output to keep ENSEMBL ID, FC and q-value columns
 (echo -e "ID\tlog2FC\tqvalue"; awk -F',' 'NR>1 {gsub(/"/,"",$0); print $14, $10, $12}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.csv) > MDX_WT_DARs_FC_qval.tsv
+
+(echo -e "ID\tlog2FC\tqvalue"; awk -F'\t' 'NR>1 {print $13, $9, $11}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.tsv) > MDX_WT_DARs_FC_qval.tsv
 
 # Run GSEA using GO terms as reference
 Rscript --vanilla /home/curso/Software/dia3/gseaGO_analysis.R -i MDX_WT_DARs_FC_qval.tsv -o org.Mm.eg.db -p MDX_vs_WT
