@@ -314,7 +314,7 @@ cd /home/curso/dia3/library_QC
 # Calculate fragment size distribution and generate an histogram
 for file in SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194
 do
-java -jar /home/curso/Software/picard.jar CollectInsertSizeMetrics -I /home/curso/dia3/alignment_wo_blacklist/${file}_1M_flt.bam -O ${file}.fraglen.stats -H ${file}.fraglen.pdf
+    java -jar /home/curso/Software/picard.jar CollectInsertSizeMetrics -I /home/curso/dia3/alignment_wo_blacklist/${file}_1M_flt.bam -O ${file}.fraglen.stats -H ${file}.fraglen.pdf
 done
 ```
 
@@ -372,11 +372,11 @@ BigWig is the format used to visualize the genome coverage or the amount of read
 #   --sortRegions no \
 #   --skipZeros
 
-# Make a profile plot out of the coverage matrix 
-plotProfile -m TSSmeta.gz \
-    -out TSS_prof.png \
-    --plotTitle "TSS-centered enrichment profile" \
-    --perGroup
+# # Make a profile plot out of the coverage matrix 
+# plotProfile -m TSSmeta.gz \
+#     -out TSS_prof.png \
+#     --plotTitle "TSS-centered enrichment profile" \
+#     --perGroup
 ```
 
 ### 5.5. Peaks correlation profile
@@ -395,15 +395,15 @@ plotProfile -m TSSmeta.gz \
 #   --markers 'o' \
 # 	--transpose
 
-# Generate a correlation heatmap
-plotCorrelation -in coverage_matrixAll_NORM.npz \
-	--corMethod pearson \
-    --labels SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 \
-    --plotTitle "Correlation Heatmap" \
-	--whatToPlot heatmap \
-    --outFileCorMatrix correlation_matrixNorm.tab \
-	--plotFile correlation_heatmapNorm.png \
-    --removeOutliers
+# # Generate a correlation heatmap
+# plotCorrelation -in coverage_matrixAll_NORM.npz \
+# 	--corMethod pearson \
+#     --labels SRR15343189 SRR15343190 SRR15343191 SRR15343192 SRR15343193 SRR15343194 \
+#     --plotTitle "Correlation Heatmap" \
+# 	--whatToPlot heatmap \
+#     --outFileCorMatrix correlation_matrixNorm.tab \
+# 	--plotFile correlation_heatmapNorm.png \
+#     --removeOutliers
 
 ```
 
@@ -543,9 +543,7 @@ conda activate Dia3-Homer
 
 # Parse DiffBind output file with DARs
 # keep columns of interest (chr, start, end, peak_name, FC, p-val, closest gene ENSEMBL ID and gene name)
-
 awk -F'\t' 'NR>1 {print $1, $2, $3, $12, $9, $10, $13, $21}' OFS='\t' DiffBind.res.MDX-WT.FDR.05.tsv > DiffBind.res.MDX-WT.FDR.05_forHomer.tsv
-
 
 # Annotate peaks to the closest
 annotatePeaks.pl DiffBind.res.MDX-WT.FDR.05_forHomer.tsv /home/curso/dia3/reference/mm39_107.fa -gid -gtf /home/curso/dia3/reference/Mus_musculus.GRCm39.107.chr.gtf -cpu 6 > DARs_MDX-WT_annotated.bed
@@ -588,8 +586,6 @@ mkdir /home/curso/dia3/pathway
 cd /home/curso/dia3/pathway
 
 # Parse DiffBind output to keep ENSEMBL ID, FC and q-value columns
-(echo -e "ID\tlog2FC\tqvalue"; awk -F',' 'NR>1 {gsub(/"/,"",$0); print $14, $10, $12}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.csv) > MDX_WT_DARs_FC_qval.tsv
-
 (echo -e "ID\tlog2FC\tqvalue"; awk -F'\t' 'NR>1 {print $13, $9, $11}' OFS='\t' /home/curso/dia3/DARs/DiffBind.res.MDX-WT.FDR.05.tsv) > MDX_WT_DARs_FC_qval.tsv
 
 # Run GSEA using GO terms as reference
