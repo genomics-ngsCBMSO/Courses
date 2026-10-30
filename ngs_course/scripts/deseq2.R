@@ -231,18 +231,21 @@ for (i in 1:(ll-1)) {
 			res$description <- description
 		}
 		# writing results for all & significative genes
+		res_save <- data.frame(ID = rownames(res), res, check.names = FALSE)
 		file <- paste("deseq2_all_", suffix, ".tsv", sep="")
-		write.table (res, file=file, quote=FALSE, sep="\t", col.names=NA)
+		write.table(res_save, file=file, quote=FALSE, sep="\t", row.names = FALSE, col.names = TRUE)
 		file <- paste("deseq2_sig_padj_", suffix, ".tsv", sep="")
 		sig <- subset(res, res$padj < cutoff)
 		subcounts <- subset(ncounts, rownames(ncounts) %in% rownames(sig))
 		subcounts <- subcounts[,rownames(df)]
 		lsubcounts <- log2(subcounts+1)
-		write.table (sig, file=file, quote=FALSE, sep="\t", col.names=NA)
+		sig_save <- data.frame(ID = rownames(sig), sig, check.names = FALSE)
+		write.table (sig_save, file=file, quote=FALSE, sep="\t", col.names=TRUE)
 		# save results with pvalue instead of padj
 		file <- paste("deseq2_sig_pval_", suffix, ".tsv", sep="")
 		sig_pval <- subset(res, res$pvalue < cutoff)
-		write.table (sig_pval, file=file, quote=FALSE, sep="\t", col.names=NA)
+		sig_pval_save <- data.frame(ID = rownames(sig_pval), sig_pval, check.names = FALSE)
+		write.table (sig_pval_save, file=file, quote=FALSE, sep="\t", col.names=TRUE)
 		# heatmap of DEG
 		file <- paste("deseq2_heatmap_", suffix, ".tiff", sep="")
 		main <- paste("Heatmap", suffix, "log2(exp+1)", sep=" ")
