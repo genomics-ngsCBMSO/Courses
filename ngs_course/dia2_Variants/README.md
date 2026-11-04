@@ -2,7 +2,7 @@
 
 **Servicio de Análisis Biocomputacional (SABio); CBM** \
 **Edition**: April, 2026 \
-**Last update**: 27/04/2026
+**Last update**: 04/11/2026
 
 All raw sequencing data used in this pipeline, as well as all intermediate and final files generated during processing, are available at the following link: **https://saco.csic.es/s/czfst3H4ieeyPz5**
 
@@ -55,10 +55,6 @@ mv ERR023195_2.fastq.gz > sensitive_2.fastq.gz
 mv ERR023197_1.fastq.gz > resistant_1.fastq.gz
 mv ERR023197_2.fastq.gz > resistant_2.fastq.gz
 
-gzip -d sensitive_1.fastq.gz
-gzip -d sensitive_2.fastq.gz
-gzip -d resistant_1.fastq.gz
-gzip -d resistant_2.fastq.gz
 ```
 
 ### 1.2. Reference genome
@@ -87,12 +83,36 @@ fastqc *.fastq.gz
 multiqc ./
 ```
 
-## 3.  Read alignment to the reference genome
+## 3. Trimming reads
+
+In order to improve sequencing read quality before the analysis, both adapters and low-quality regions that could interfere with genome alignment are removed. 
+
+Trim Galore is used to remove adapter sequences and low-quality bases from the sequencing reads. The --paired option ensures that both reads from each pair are processed together, while --cores 4 allows the program to use four CPU cores.
+
+**Important!** Due to incompatibilities, Trim Galore is installed in Dia3 environment instead of Dia2. We need to deactivate our current environment and activate Dia3.
+
+```bash
+conda deactivate
+conda activate Dia3
+```
+
+```bash
+trim_galore --paired --cores 4 sensitive_1.fastq.gz sensitive_2.fastq.gz
+trim_galore --paired --cores 4 resistant_1.fastq.gz resistant_2.fastq.gz
+```
+Once the process is done, we activate again our conda environment for Dia2.
+
+```bash
+conda deactivate
+conda activate Dia2
+```
+
+## 4.  Read alignment to the reference genome
 
 Read alignment maps sequencing reads onto the reference genome.
 For this purpose, we use BWA-MEM, an efficient aligner based on the Burrows-Wheeler Transform (BWT), particularly suitable for short Illumina reads.
 
-## 3.1 Index the reference genome
+## 4.1 Index the reference genome
 
 Before aligning sequencing reads, the reference genome must be indexed. This process creates auxiliary files that allow the aligner to efficiently search and map reads to the reference sequence.
 
@@ -102,7 +122,7 @@ In this step, **BWA** builds an index of the reference genome using the Burrows-
 bwa index -p mtu mtu.fasta
 ```
 
-## 3.2 Align reads
+## 4.2 Align reads
 
 Once the reference genome is indexed, sequencing reads can be aligned against it.
 
@@ -110,9 +130,9 @@ This step maps each read to its most likely position in the reference genome usi
 
 ```bash
 # Sensitive strain
-bwa mem mtu.fasta sensitive_1.fastq sensitive_2.fastq > sensitive.sam
+bwa mem mtu.fasta sensitive_1_val_1.fq.gz sensitive_2_val_2.fq.gz > sensitive.sam
 # Resistant strain
-bwa mem mtu.fasta resistant_1.fastq resistant_2.fastq > resistant.sam
+bwa mem mtu.fasta resistant_1_val_1.fq.gz resistant_2_val_2.fq.gz > resistant.sam
 ```
 
 To simplify the analysis of multiple samples, repetitive commands can be automated using a **for loop** in bash. This allows the same alignment and post-processing steps to be applied sequentially to each sample, reducing manual repetition and minimizing the risk of errors.
@@ -120,11 +140,11 @@ To simplify the analysis of multiple samples, repetitive commands can be automat
 ```bash
 for sample in sensitive resistant
 do
-  bwa mem mtu.fasta ${sample}_1.fastq ${sample}_2.fastq > ${sample}.sam
+  bwa mem mtu.fasta ${sample}_1_val_1.fastq ${sample}_2_val_2.fastq > ${sample}.sam
 done
 ```
 
-## 3.3 Convert, sort and index BAM files
+## 4.3 Convert, sort and index BAM files
 
 SAM files are plain text and can be very large. To improve efficiency, they are converted to **BAM**, a compressed binary version of the same information.
 
@@ -140,7 +160,7 @@ do
 done
 ```
 
-## 4. Coverage Analysis and Visualization
+## 5. Coverage Analysis and Visualization
 
 Coverage analysis measures sequencing depth across the reference genome and helps detect uneven sequencing or poorly covered regions. 
 
@@ -152,13 +172,15 @@ genomeCoverageBed -ibam resistant_sorted.bam -g mtu.fasta -d > resistant_coverag
 ```
 The sorted alignment files in BAM format can also be visualized with genomic browsers such as IGV (Integrative Genomic Viewer). 
 
-## 5 Alignment Preprocessing
+## 6. Alignment Preprocessing
 
 Before calling variants, alignments are processed to improve accuracy. All the steps can be performed with **Picard tools**. The preprocessing includes:
 
  - Marking PCR duplicates which can bias variant calling (tool: *picard MarkDuplicates*).
  - Assigning read groups, which store metadata about the sample and are required by GATK. (tool: *picard AddOrReplaceReadGroups*)
  - Indexing BAM files so they can be processed by other software and browsers. (tool: *picard BuildBamIndex*)
+
+Local realignment around indels was traditionally performed during BAM preprocessing using *GATK RealignerTargetCreator* and *IndelRealigner*. However, this step was not required in the present workflow because *GATK HaplotypeCaller* performs local assembly to improve variant detection around indels.
  
 ```bash
 for sample in sensitive resistant
@@ -169,7 +191,7 @@ do
 done
 ```
 
-## 6. Variant Calling
+## 7. Variant Calling
 
 Once the alignments have been processed, the next step is to identify the genomic positions where the sequenced samples differ from the reference genome. This process is known as **variant calling**.
 
@@ -198,7 +220,7 @@ The output is a **VCF file (Variant Call Format)**, which contains:
 - quality statistics,
 - depth of coverage and additional metrics describing confidence in the call.
 
-## 7. Variant filtering
+## 8. Variant filtering
 
 The raw variants detected may include false positives, caused by sequencing errors, alignment artifacts, or low-confidence positions. To improve the reliability of the results, the variants are filtered according to quality criteria. Two of the most common metrics are:
 
@@ -215,7 +237,7 @@ do
 done
 ```
 
-## 8. Variant Annotation
+## 9. Variant Annotation
 
 After identifying and filtering the variants, the next step is to determine their possible biological impact. This process is called variant annotation, and its purpose is to add functional information to each detected variant, such as whether the variant is located inside a gene or the predicted impact on protein function.
 
