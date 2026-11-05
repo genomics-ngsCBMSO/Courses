@@ -12,7 +12,7 @@ usage()
 }
 
 TYPE_OF_READS='paired'
-DIRECTORY=$PWD 
+DIRECTORY="$(pwd)"
 OUTPUT_FILE='manifest.csv'
 
 #Get parameters
@@ -27,7 +27,7 @@ do
   ;;
    -d| --directory)
     shift
-    DIRECTORY=$(realpath "$1")
+    DIRECTORY="$(realpath "$1")"
     shift
   ;;
    -o| --output)
